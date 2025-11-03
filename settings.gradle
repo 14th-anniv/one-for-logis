@@ -1,0 +1,10 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'one-for-logis'
+
+include 'common-lib', 'user-service', 'hub-service', 'order-service', 'gateway-service', 'eureka-server'

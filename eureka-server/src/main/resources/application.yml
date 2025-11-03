@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: eureka-server
+  web:
+    resources:
+      add-mappings: false
+
+  profiles:
+    active: local
+    group:
+      local: local
+      prod: prod
+
+  config:
+    import: optional:file:.env[.properties]
+
+server:
+  port: ${EUREKA_PORT}
+
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+  server:
+    wait-time-in-ms-when-sync-empty: 0
