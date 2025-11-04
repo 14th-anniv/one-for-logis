@@ -1,47 +1,54 @@
 package com.oneforlogis.common.api;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.oneforlogis.common.exception.ErrorCode;
-import java.time.LocalDateTime;
-import lombok.Getter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
-@Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ApiResponse<T> {
+public record ApiResponse<T>(
 
-    private final boolean success;
-    private final String code;
-    private final String message;
-    private final T data;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private final LocalDateTime timestamp;
+        @Schema(description = "응답 성공 여부", example = "true")
+        boolean success,
+        @Schema(description = "HTTP 상태 코드", example = "200")
+        int code,
+        @Schema(description = "응답 데이터")
+        T data
+) {
 
-    private ApiResponse(boolean success, String code, String message, T data) {
-        this.success = success;
-        this.code = code;
-        this.message = message;
-        this.data = data;
-        this.timestamp = LocalDateTime.now();
+    public ApiResponse(HttpStatus status, T data) {
+        this(true, status.value(), data);
     }
 
-    public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<>(true, "OK", "성공", data);
+    public ApiResponse(HttpStatus status) {
+        this(true, status.value(), null);
     }
 
-    public static <T> ApiResponse<T> success(String message, T data) {
-        return new ApiResponse<>(true, "OK", message, data);
+    public static <T> ResponseEntity<ApiResponse<T>> success(T data) {
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK, data));
     }
 
-    public static ApiResponse<Void> fail(ErrorCode errorCode) {
-        return new ApiResponse<>(false, errorCode.name(), errorCode.getMessage(), null);
+    public static <T> ResponseEntity<ApiResponse<T>> ok() {
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK));
     }
 
-    public static ApiResponse<Void> fail(String message, ErrorCode errorCode) {
-        return new ApiResponse<>(false, errorCode.name(), message, null);
+    public static <T> ResponseEntity<ApiResponse<T>> created(T data) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(HttpStatus.CREATED, data));
     }
 
-    public static ApiResponse<Void> fail(String code, String message) {
-        return new ApiResponse<>(false, code, message, null);
+    public static <T> ResponseEntity<ApiResponse<T>> created() {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(HttpStatus.CREATED));
+    }
+
+    public static <T> ResponseEntity<ApiResponse<T>> accepted(T data) {
+        return ResponseEntity.status(HttpStatus.ACCEPTED)
+                .body(new ApiResponse<>(HttpStatus.ACCEPTED, data));
+    }
+
+    public static <T> ResponseEntity<ApiResponse<T>> noContent() {
+        return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                .body(new ApiResponse<>(HttpStatus.NO_CONTENT));
     }
 }

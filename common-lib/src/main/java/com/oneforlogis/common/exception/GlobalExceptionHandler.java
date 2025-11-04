@@ -18,11 +18,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CustomException.class)
     protected ResponseEntity<ApiResponse<Void>> handleBusinessException(CustomException e) {
         ErrorCode errorCode = e.getErrorCode();
-        log.warn("[BusinessException] {} (status: {})", errorCode.getMessage(),
-                errorCode.getHttpStatus().value());
+        HttpStatus status = errorCode.getHttpStatus();
+        log.warn("[BusinessException] {} (status: {})", errorCode.getMessage(), status.value());
         return ResponseEntity
-                .status(errorCode.getHttpStatus())
-                .body(ApiResponse.fail(errorCode));
+                .status(status)
+                .body(new ApiResponse<>(false, status.value(), null));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -32,9 +32,10 @@ public class GlobalExceptionHandler {
                 ? e.getBindingResult().getFieldError().getDefaultMessage()
                 : "요청 값이 유효하지 않습니다.";
         log.warn("[ValidationError] {}", message);
+        HttpStatus status = HttpStatus.BAD_REQUEST;
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.fail(message, ErrorCode.VALIDATION_ERROR));
+                .status(status)
+                .body(new ApiResponse<>(false, status.value(), null));
     }
 
     @ExceptionHandler(BindException.class)
@@ -43,33 +44,37 @@ public class GlobalExceptionHandler {
                 ? e.getBindingResult().getFieldError().getDefaultMessage()
                 : "요청 파라미터가 유효하지 않습니다.";
         log.warn("[BindError] {}", message);
+        HttpStatus status = HttpStatus.BAD_REQUEST;
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.fail(message, ErrorCode.VALIDATION_ERROR));
+                .status(status)
+                .body(new ApiResponse<>(false, status.value(), null));
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     protected ResponseEntity<ApiResponse<Void>> handleMethodNotSupported(
             HttpRequestMethodNotSupportedException e) {
         log.warn("[METHOD_NOT_ALLOWED]", e);
+        HttpStatus status = HttpStatus.METHOD_NOT_ALLOWED;
         return ResponseEntity
-                .status(HttpStatus.METHOD_NOT_ALLOWED)
-                .body(ApiResponse.fail(ErrorCode.METHOD_NOT_ALLOWED));
+                .status(status)
+                .body(new ApiResponse<>(false, status.value(), null));
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
     protected ResponseEntity<ApiResponse<Void>> handleNotFound(NoResourceFoundException e) {
         log.warn("[NOT_FOUND]", e);
+        HttpStatus status = HttpStatus.NOT_FOUND;
         return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.fail(ErrorCode.NOT_FOUND));
+                .status(status)
+                .body(new ApiResponse<>(false, status.value(), null));
     }
 
     @ExceptionHandler(Exception.class)
     protected ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
         log.error("[INTERNAL_SERVER_ERROR] {}", e.getMessage(), e);
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.fail(ErrorCode.INTERNAL_SERVER_ERROR));
+                .status(status)
+                .body(new ApiResponse<>(false, status.value(), null));
     }
 }
