@@ -1,5 +1,4 @@
 plugins {
-    id 'java'
     id 'org.springframework.boot' version '3.3.2' apply false
     id 'io.spring.dependency-management' version '1.1.5' apply false
 }
@@ -8,9 +7,7 @@ allprojects {
     group = 'com.oneforlogis'
     version = '0.0.1-SNAPSHOT'
 
-    repositories {
-        mavenCentral()
-    }
+    repositories { mavenCentral() }
 }
 
 ext {
@@ -22,9 +19,7 @@ subprojects {
     apply plugin: 'io.spring.dependency-management'
 
     java {
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(17)
-        }
+        toolchain { languageVersion = JavaLanguageVersion.of(17) }
     }
 
     dependencyManagement {
@@ -37,4 +32,6 @@ subprojects {
     dependencies {
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
     }
+
+    tasks.withType(Test).configureEach { useJUnitPlatform() }
 }
