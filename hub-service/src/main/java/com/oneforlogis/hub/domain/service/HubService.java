@@ -7,10 +7,14 @@ import com.oneforlogis.hub.domain.repository.HubRepository;
 import com.oneforlogis.hub.presentation.request.HubCreateRequest;
 import com.oneforlogis.hub.presentation.request.HubUpdateRequest;
 import com.oneforlogis.hub.presentation.response.HubResponse;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class HubService {
 
     private final HubRepository hubRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @CachePut(value = "hub", key = "#result.id")
     @Transactional
@@ -50,5 +55,16 @@ public class HubService {
             throw new CustomException(ErrorCode.HUB_ALREADY_DELETED);
         }
         hub.markAsDeleted(userName);
+    }
+
+    @Transactional
+    public void refreshHubCache() {
+        List<Hub> hubs = hubRepository.findByDeletedFalse();
+        Map<String, HubResponse> hubMap = hubs.stream()
+                .collect(Collectors.toMap(
+                        hub -> "hub:" + hub.getId(),
+                        HubResponse::from
+                ));
+        redisTemplate.opsForValue().multiSet(hubMap);
     }
 }

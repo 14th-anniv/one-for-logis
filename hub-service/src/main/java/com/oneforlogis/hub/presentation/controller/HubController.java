@@ -40,7 +40,15 @@ public class HubController {
     @PreAuthorize("hasRole('MASTER')")
     @DeleteMapping("/{hubId}")
     public ApiResponse<Void> deleteHub(@AuthenticationPrincipal UserPrincipal userPrincipal, @PathVariable UUID hubId) {
-            hubService.deleteHub(userPrincipal.username(), hubId);
+        hubService.deleteHub(userPrincipal.username(), hubId);
         return ApiResponse.success();
+    }
+
+    @Operation(summary = "허브 캐시 갱신", description = "허브 데이터 캐시를 갱신합니다. 'MASTER' 권한이 필요합니다.")
+    @PreAuthorize("hasRole('MASTER')")
+    @PostMapping("/cache/refresh")
+    public ApiResponse<Void> refreshHubCache() {
+        hubService.refreshHubCache();
+        return ApiResponse.success("허브 캐시가 갱신되었습니다.");
     }
 }
