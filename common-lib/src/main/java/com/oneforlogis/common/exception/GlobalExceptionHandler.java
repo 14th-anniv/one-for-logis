@@ -3,7 +3,7 @@ package com.oneforlogis.common.exception;
 import com.oneforlogis.common.api.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -57,6 +57,12 @@ public class GlobalExceptionHandler {
         log.warn("[NOT_FOUND]", e);
         HttpStatus status = HttpStatus.NOT_FOUND;
         return new ApiResponse<>(false, status.value(), e.getMessage(), null);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ApiResponse<Void> handleAccessDeniedException(AccessDeniedException e) {
+        ErrorCode errorCode = ErrorCode.FORBIDDEN_ACCESS;
+        return new ApiResponse<>(false, errorCode.getHttpStatus().value(), errorCode.getMessage(), null);
     }
 
     @ExceptionHandler(Exception.class)
