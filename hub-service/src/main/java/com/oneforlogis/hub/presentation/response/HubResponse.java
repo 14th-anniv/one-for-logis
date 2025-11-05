@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Schema(description = "허브 생성 응답 DTO")
-public record HubUpdateResponse(
+public record HubResponse(
         @Schema(description = "허브 ID (UUID)", example = "550e8400-e29b-41d4-a716-446655440000")
         UUID id,
 
@@ -35,8 +35,8 @@ public record HubUpdateResponse(
         @Schema(description = "수정일시", example = "2025-12-15T20:00:00")
         LocalDateTime updatedAt
 ){
-    public static HubUpdateResponse from(Hub hub) {
-        return new HubUpdateResponse(
+    public static HubResponse from(Hub hub) {
+        return new HubResponse(
                 hub.getId(),
                 hub.getName(),
                 hub.getAddress(),
