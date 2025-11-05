@@ -9,7 +9,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 @Slf4j
 @RestControllerAdvice
@@ -60,8 +60,8 @@ public class GlobalExceptionHandler {
                 .body(new ApiResponse<>(false, status.value(), null));
     }
 
-    @ExceptionHandler(NoResourceFoundException.class)
-    protected ResponseEntity<ApiResponse<Void>> handleNotFound(NoResourceFoundException e) {
+    @ExceptionHandler(NoHandlerFoundException.class)
+    protected ResponseEntity<ApiResponse<Void>> handleNotFound(NoHandlerFoundException e) {
         log.warn("[NOT_FOUND]", e);
         HttpStatus status = HttpStatus.NOT_FOUND;
         return ResponseEntity

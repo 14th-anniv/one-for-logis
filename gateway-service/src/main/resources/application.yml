@@ -1,43 +1,21 @@
 spring:
-  application:
-    name: gateway-service
-  web:
-    resources:
-      add-mappings: false
-
   profiles:
     active: local
-    group:
-      local: local
-      prod: prod
-
-  config:
-    import: optional:file:.env[.properties]
-
-  cloud:
-    gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
-      routes:
-        - id: user-service
-          uri: lb://user-service
-          predicates:
-            - Path=/api/users/**
-        - id: hub-service
-          uri: lb://hub-service
-          predicates:
-            - Path=/api/hubs/**
-        - id: order-service
-          uri: lb://order-service
-          predicates:
-            - Path=/api/orders/**
-
-server:
-  port: ${GATEWAY_PORT}
 
 eureka:
   client:
+    register-with-eureka: false
+    fetch-registry: true
     service-url:
-      defaultZone: ${EUREKA_SERVER_URL}
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    org.springframework.web: INFO
