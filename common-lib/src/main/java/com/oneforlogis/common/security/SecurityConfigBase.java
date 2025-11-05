@@ -1,5 +1,6 @@
 package com.oneforlogis.common.security;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -9,7 +10,10 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @EnableWebSecurity
+@RequiredArgsConstructor
 public abstract class SecurityConfigBase {
+
+    private final CustomAccessDeniedHandler accessDeniedHandler;
 
     @Bean
     public HeaderAuthFilter headerAuthFilter() {
@@ -21,6 +25,9 @@ public abstract class SecurityConfigBase {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(headerAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(e -> e
+                        .accessDeniedHandler(accessDeniedHandler)
+                )
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers(
                             "/swagger-ui/**",
