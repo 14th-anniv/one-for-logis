@@ -1,6 +1,13 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   profiles:
     active: local
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${ORDER_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
