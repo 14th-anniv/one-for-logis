@@ -1,6 +1,7 @@
 package com.oneforlogis.hub.presentation.controller;
 
 import com.oneforlogis.common.api.ApiResponse;
+import com.oneforlogis.common.security.UserPrincipal;
 import com.oneforlogis.hub.domain.service.HubService;
 import com.oneforlogis.hub.presentation.request.HubCreateRequest;
 import com.oneforlogis.hub.presentation.request.HubUpdateRequest;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.UUID;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import lombok.RequiredArgsConstructor;
 
@@ -33,5 +35,13 @@ public class HubController {
     @PutMapping("/{hubId}")
     public ApiResponse<HubUpdateResponse> updateHub(@PathVariable UUID hubId, @RequestBody HubUpdateRequest request) {
         return ApiResponse.success(hubService.updateHub(hubId, request));
+    }
+
+    @Operation(summary = "허브 삭제", description = "허브를 논리적으로 삭제합니다. 'MASTER' 권한이 필요합니다.")
+    @PreAuthorize("hasRole('MASTER')")
+    @DeleteMapping("/{hubId}")
+    public ApiResponse<Void> deleteHub(@AuthenticationPrincipal UserPrincipal userPrincipal, @PathVariable UUID hubId) {
+            hubService.deleteHub(userPrincipal.username(), hubId);
+        return ApiResponse.success();
     }
 }

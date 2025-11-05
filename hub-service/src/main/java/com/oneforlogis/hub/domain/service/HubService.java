@@ -30,7 +30,20 @@ public class HubService {
     public HubUpdateResponse updateHub(UUID hubId, HubUpdateRequest request) {
         Hub hub = hubRepository.findById(hubId)
                 .orElseThrow(() -> new CustomException(ErrorCode.HUB_NOT_FOUND));
+        if (hub.isDeleted()) {
+            throw new CustomException(ErrorCode.HUB_ALREADY_DELETED);
+        }
         hub.update(request);
         return HubUpdateResponse.from(hub);
+    }
+
+    @Transactional
+    public void deleteHub(String userName, UUID hubId) {
+        Hub hub = hubRepository.findById(hubId)
+                .orElseThrow(() -> new CustomException(ErrorCode.HUB_NOT_FOUND));
+        if (hub.isDeleted()) {
+            throw new CustomException(ErrorCode.HUB_ALREADY_DELETED);
+        }
+        hub.markAsDeleted(userName);
     }
 }
