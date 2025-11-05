@@ -23,6 +23,21 @@ public enum ErrorCode {
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "JWT 토큰이 만료되었습니다."),
     UNSUPPORTED_TOKEN(HttpStatus.UNAUTHORIZED, "지원하지 않는 JWT 토큰입니다."),
 
+    // User
+
+    // Hub
+    HUB_NOT_FOUND(HttpStatus.NOT_FOUND, "허브를 찾을 수 없습니다."),
+
+    // Company
+
+    // Product
+
+    // Order
+
+    // Delivery
+
+    // Notification
+
     ;
 
     private final HttpStatus httpStatus;
