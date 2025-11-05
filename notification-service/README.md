@@ -32,9 +32,9 @@ Notification and AI integration service for 14logis logistics system.
 
 ## Database Tables
 
-- `p_notifications`: Message history with sender/recipient snapshots
-- `p_external_api_logs`: External API call monitoring
-- `p_company_delivery_routes`: Daily optimized delivery routes (Challenge)
+- `p_notifications`: Message history with sender/recipient snapshots (20 fields)
+- `p_external_api_logs`: External API call monitoring (13 fields)
+- `p_company_delivery_routes`: Daily optimized delivery routes (Challenge, not implemented)
 
 ## Package Structure (DDD)
 
@@ -73,8 +73,37 @@ EUREKA_SERVER_URL=http://localhost:8761/eureka
 
 ```bash
 # Build image
-docker build -t notification-service:latest ./notification-service
+./gradlew :notification-service:build -x test
+docker-compose build notification-service
 
-# Run container
-docker run -p 8700:8700 notification-service:latest
+# Run with docker-compose
+docker-compose up -d notification-service
+
+# Health check
+curl http://localhost:8700/actuator/health
+# Expected: {"status":"UP"}
+
+# Verify database tables
+docker exec oneforlogis-postgres psql -U root -d oneforlogis_notification -c "\dt"
+# Expected: p_notifications, p_external_api_logs
+
+# Check Eureka registration
+curl http://localhost:8761/eureka/apps/NOTIFICATION-SERVICE
 ```
+
+## Development Status
+
+### ✅ Completed (Issue #12)
+
+- Domain entities: `Notification`, `ExternalApiLog`
+- Repository layer: Domain interfaces + Infrastructure implementations
+- JPA configurations: Auditing, soft delete with `@SQLRestriction`
+- Test coverage: 26 tests (15 Notification + 11 ExternalApiLog) - 100% pass
+- Docker integration: PostgreSQL 17 with JSONB support
+
+### 🚧 Pending
+
+- Presentation layer (REST API controllers)
+- Application layer (Facade, use cases)
+- External API clients (Slack, ChatGPT, Naver Maps)
+- Business logic implementation
