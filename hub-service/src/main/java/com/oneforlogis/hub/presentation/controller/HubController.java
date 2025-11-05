@@ -2,7 +2,7 @@ package com.oneforlogis.hub.presentation.controller;
 
 import com.oneforlogis.common.api.ApiResponse;
 import com.oneforlogis.common.security.UserPrincipal;
-import com.oneforlogis.hub.domain.service.HubService;
+import com.oneforlogis.hub.application.service.HubService;
 import com.oneforlogis.hub.presentation.request.HubCreateRequest;
 import com.oneforlogis.hub.presentation.request.HubUpdateRequest;
 import com.oneforlogis.hub.presentation.response.HubResponse;
