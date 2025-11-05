@@ -16,65 +16,53 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(CustomException.class)
-    protected ResponseEntity<ApiResponse<Void>> handleBusinessException(CustomException e) {
+    protected ApiResponse<Void> handleBusinessException(CustomException e) {
         ErrorCode errorCode = e.getErrorCode();
         HttpStatus status = errorCode.getHttpStatus();
         log.warn("[BusinessException] {} (status: {})", errorCode.getMessage(), status.value());
-        return ResponseEntity
-                .status(status)
-                .body(new ApiResponse<>(false, status.value(), null));
+        return new ApiResponse<>(false, status.value(), errorCode.getMessage(), null);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    protected ResponseEntity<ApiResponse<Void>> handleMethodArgumentNotValid(
+    protected ApiResponse<Void> handleMethodArgumentNotValid(
             MethodArgumentNotValidException e) {
         String message = e.getBindingResult().getFieldError() != null
                 ? e.getBindingResult().getFieldError().getDefaultMessage()
                 : "요청 값이 유효하지 않습니다.";
         log.warn("[ValidationError] {}", message);
         HttpStatus status = HttpStatus.BAD_REQUEST;
-        return ResponseEntity
-                .status(status)
-                .body(new ApiResponse<>(false, status.value(), null));
+        return new ApiResponse<>(false, status.value(), message, null);
     }
 
     @ExceptionHandler(BindException.class)
-    protected ResponseEntity<ApiResponse<Void>> handleBindException(BindException e) {
+    protected ApiResponse<Void> handleBindException(BindException e) {
         String message = e.getBindingResult().getFieldError() != null
                 ? e.getBindingResult().getFieldError().getDefaultMessage()
                 : "요청 파라미터가 유효하지 않습니다.";
         log.warn("[BindError] {}", message);
         HttpStatus status = HttpStatus.BAD_REQUEST;
-        return ResponseEntity
-                .status(status)
-                .body(new ApiResponse<>(false, status.value(), null));
+        return new ApiResponse<>(false, status.value(), message, null);
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    protected ResponseEntity<ApiResponse<Void>> handleMethodNotSupported(
+    protected ApiResponse<Void> handleMethodNotSupported(
             HttpRequestMethodNotSupportedException e) {
         log.warn("[METHOD_NOT_ALLOWED]", e);
         HttpStatus status = HttpStatus.METHOD_NOT_ALLOWED;
-        return ResponseEntity
-                .status(status)
-                .body(new ApiResponse<>(false, status.value(), null));
+        return new ApiResponse<>(false, status.value(), e.getMessage(), null);
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)
-    protected ResponseEntity<ApiResponse<Void>> handleNotFound(NoHandlerFoundException e) {
+    protected ApiResponse<Void> handleNotFound(NoHandlerFoundException e) {
         log.warn("[NOT_FOUND]", e);
         HttpStatus status = HttpStatus.NOT_FOUND;
-        return ResponseEntity
-                .status(status)
-                .body(new ApiResponse<>(false, status.value(), null));
+        return new ApiResponse<>(false, status.value(), e.getMessage(), null);
     }
 
     @ExceptionHandler(Exception.class)
-    protected ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
+    protected ApiResponse<Void> handleException(Exception e) {
         log.error("[INTERNAL_SERVER_ERROR] {}", e.getMessage(), e);
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
-        return ResponseEntity
-                .status(status)
-                .body(new ApiResponse<>(false, status.value(), null));
+        return new ApiResponse<>(false, status.value(), e.getMessage(), null);
     }
 }
