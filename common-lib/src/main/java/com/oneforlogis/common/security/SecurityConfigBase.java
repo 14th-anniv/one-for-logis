@@ -1,6 +1,7 @@
 package com.oneforlogis.common.security;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -13,7 +14,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public abstract class SecurityConfigBase {
 
-    private final CustomAccessDeniedHandler accessDeniedHandler;
+    @Autowired
+    protected CustomAccessDeniedHandler accessDeniedHandler;
 
     @Bean
     public HeaderAuthFilter headerAuthFilter() {
