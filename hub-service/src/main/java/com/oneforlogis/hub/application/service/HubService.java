@@ -34,7 +34,7 @@ public class HubService {
     public HubResponse updateHub(UUID hubId, HubUpdateRequest request) {
         Hub hub = hubRepository.findById(hubId)
                 .orElseThrow(() -> new CustomException(ErrorCode.HUB_NOT_FOUND));
-        if (hub.isDeleted()) throw new CustomException(ErrorCode.HUB_ALREADY_DELETED);
+        if (hub.isDeleted()) throw new CustomException(ErrorCode.HUB_DELETED);
 
         hub.update(request);
         hubRepository.flush();
@@ -47,7 +47,7 @@ public class HubService {
     public void deleteHub(String userName, UUID hubId) {
         Hub hub = hubRepository.findById(hubId)
                 .orElseThrow(() -> new CustomException(ErrorCode.HUB_NOT_FOUND));
-        if (hub.isDeleted()) throw new CustomException(ErrorCode.HUB_ALREADY_DELETED);
+        if (hub.isDeleted()) throw new CustomException(ErrorCode.HUB_DELETED);
         hub.markAsDeleted(userName);
         hubCacheService.deleteHubCache(hubId);
     }
@@ -63,9 +63,21 @@ public class HubService {
         HubResponse cached = hubCacheService.getHubCache(hubId);
         if (cached != null) return cached;
 
-        Hub hub = hubRepository.findById(hubId)
+        Hub hub = hubRepository.findByIdAndDeletedFalse(hubId)
                 .orElseThrow(() -> new CustomException(ErrorCode.HUB_NOT_FOUND));
-        if (hub.isDeleted()) throw new CustomException(ErrorCode.HUB_ALREADY_DELETED);
+
+        HubResponse response = HubResponse.from(hub);
+        hubCacheService.saveHubCache(response);
+        return response;
+    }
+
+    @Transactional(readOnly = true)
+    public HubResponse getHubByName(String hubName) {
+        HubResponse cached = hubCacheService.getHubCacheByName(hubName);
+        if (cached != null) return cached;
+
+        Hub hub = hubRepository.findByNameAndDeletedFalse(hubName)
+                .orElseThrow(() -> new CustomException(ErrorCode.HUB_NOT_FOUND));
 
         HubResponse response = HubResponse.from(hub);
         hubCacheService.saveHubCache(response);

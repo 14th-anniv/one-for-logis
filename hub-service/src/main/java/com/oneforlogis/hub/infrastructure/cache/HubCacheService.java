@@ -52,4 +52,11 @@ public class HubCacheService {
     public HubResponse getHubCache(UUID hubId) {
         return (HubResponse) redisTemplate.opsForValue().get(HUB_ID_KEY_PREFIX + hubId);
     }
+
+    public HubResponse getHubCacheByName(String name) {
+        String encodedName = URLEncoder.encode(name, StandardCharsets.UTF_8);
+        String hubId = (String) redisTemplate.opsForValue().get(HUB_NAME_KEY_PREFIX + encodedName);
+        if (hubId == null) return null;
+        return getHubCache(UUID.fromString(hubId));
+    }
 }

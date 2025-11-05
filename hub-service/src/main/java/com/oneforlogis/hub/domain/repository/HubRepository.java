@@ -9,5 +9,7 @@ public interface HubRepository {
     void save(Hub hub);
     void flush();
     Optional<Hub> findById(UUID id);
+    Optional<Hub> findByIdAndDeletedFalse(UUID id);
+    Optional<Hub> findByNameAndDeletedFalse(String hubName);
     List<Hub> findByDeletedFalse();
 }

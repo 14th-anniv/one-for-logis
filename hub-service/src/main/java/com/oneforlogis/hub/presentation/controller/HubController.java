@@ -52,9 +52,16 @@ public class HubController {
         return ApiResponse.success("허브 캐시가 갱신되었습니다.");
     }
 
-    @Operation(summary = "허브 단일 조회", description = "허브 ID로 단일 허브 정보를 조회합니다.")
+    @Operation(summary = "허브 id로 단일 조회", description = "허브 ID로 단일 허브 정보를 조회합니다.")
     @GetMapping("/{hubId}")
     public ApiResponse<HubResponse> getHubById(@PathVariable UUID hubId) {
         return ApiResponse.success(hubService.getHubById(hubId));
     }
+
+    @Operation(summary = "허브 이름으로 조회", description = "허브 이름으로 단일 허브 정보를 조회합니다.")
+    @GetMapping("/name/{hubName}")
+    public ApiResponse<HubResponse> getHubByName(@PathVariable String hubName) {
+        return ApiResponse.success(hubService.getHubByName(hubName));
+    }
+
 }

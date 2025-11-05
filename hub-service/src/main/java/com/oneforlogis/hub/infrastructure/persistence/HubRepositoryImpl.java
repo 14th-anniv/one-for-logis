@@ -30,6 +30,16 @@ public class HubRepositoryImpl implements HubRepository {
     }
 
     @Override
+    public Optional<Hub> findByIdAndDeletedFalse(UUID id) {
+        return jpaRepository.findByIdAndDeletedFalse(id);
+    }
+
+    @Override
+    public Optional<Hub> findByNameAndDeletedFalse(String hubName) {
+        return jpaRepository.findByNameAndDeletedFalse(hubName);
+    }
+
+    @Override
     public List<Hub> findByDeletedFalse() {
         return jpaRepository.findByDeletedFalse();
     }
