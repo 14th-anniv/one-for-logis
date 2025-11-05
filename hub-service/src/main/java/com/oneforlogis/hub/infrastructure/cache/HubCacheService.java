@@ -11,7 +11,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.HashMap;
 
 @Service
@@ -41,10 +40,6 @@ public class HubCacheService {
         redisTemplate.delete(HUB_ID_KEY_PREFIX + hubId);
     }
 
-    public HubResponse getHubCache(UUID hubId) {
-        return (HubResponse) redisTemplate.opsForValue().get(HUB_ID_KEY_PREFIX + hubId);
-    }
-
     public void refreshHubListCache(List<Hub> hubs) {
         Map<String, Object> combinedMap = new HashMap<>();
         for (Hub hub : hubs) {
@@ -52,5 +47,9 @@ public class HubCacheService {
             combinedMap.put(HUB_NAME_KEY_PREFIX + URLEncoder.encode(hub.getName(), StandardCharsets.UTF_8), hub.getId().toString());
         }
         redisTemplate.opsForValue().multiSet(combinedMap);
+    }
+
+    public HubResponse getHubCache(UUID hubId) {
+        return (HubResponse) redisTemplate.opsForValue().get(HUB_ID_KEY_PREFIX + hubId);
     }
 }

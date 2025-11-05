@@ -57,4 +57,18 @@ public class HubService {
         List<Hub> hubs = hubRepository.findByDeletedFalse();
         hubCacheService.refreshHubListCache(hubs);
     }
+
+    @Transactional(readOnly = true)
+    public HubResponse getHubById(UUID hubId) {
+        HubResponse cached = hubCacheService.getHubCache(hubId);
+        if (cached != null) return cached;
+
+        Hub hub = hubRepository.findById(hubId)
+                .orElseThrow(() -> new CustomException(ErrorCode.HUB_NOT_FOUND));
+        if (hub.isDeleted()) throw new CustomException(ErrorCode.HUB_ALREADY_DELETED);
+
+        HubResponse response = HubResponse.from(hub);
+        hubCacheService.saveHubCache(response);
+        return response;
+    }
 }
