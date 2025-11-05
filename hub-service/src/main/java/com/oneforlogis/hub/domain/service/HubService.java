@@ -9,6 +9,8 @@ import com.oneforlogis.hub.presentation.request.HubUpdateRequest;
 import com.oneforlogis.hub.presentation.response.HubResponse;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,7 @@ public class HubService {
 
     private final HubRepository hubRepository;
 
+    @CachePut(value = "hub", key = "#result.id")
     @Transactional
     public HubResponse createHub(HubCreateRequest request) {
         Hub hub = Hub.create(request);
@@ -25,6 +28,7 @@ public class HubService {
         return HubResponse.from(hub);
     }
 
+    @CachePut(value = "hub", key = "#hubId")
     @Transactional
     public HubResponse updateHub(UUID hubId, HubUpdateRequest request) {
         Hub hub = hubRepository.findById(hubId)
@@ -37,6 +41,7 @@ public class HubService {
         return HubResponse.from(hub);
     }
 
+    @CacheEvict(value = "hub", key = "#hubId")
     @Transactional
     public void deleteHub(String userName, UUID hubId) {
         Hub hub = hubRepository.findById(hubId)
