@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @RequiredArgsConstructor
@@ -42,5 +44,10 @@ public class HubRepositoryImpl implements HubRepository {
     @Override
     public List<Hub> findByDeletedFalse() {
         return jpaRepository.findByDeletedFalse();
+    }
+
+    @Override
+    public Page<Hub> findByDeletedFalse(Pageable pageable) {
+        return jpaRepository.findByDeletedFalse(pageable);
     }
 }

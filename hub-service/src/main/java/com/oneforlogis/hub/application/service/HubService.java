@@ -1,5 +1,6 @@
 package com.oneforlogis.hub.application.service;
 
+import com.oneforlogis.common.api.PageResponse;
 import com.oneforlogis.common.exception.CustomException;
 import com.oneforlogis.common.exception.ErrorCode;
 import com.oneforlogis.hub.domain.model.Hub;
@@ -11,6 +12,9 @@ import com.oneforlogis.hub.presentation.response.HubResponse;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -82,5 +86,12 @@ public class HubService {
         HubResponse response = HubResponse.from(hub);
         hubCacheService.saveHubCache(response);
         return response;
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<HubResponse> getAllHubs(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Hub> pageData = hubRepository.findByDeletedFalse(pageable);
+        return PageResponse.fromPage(pageData.map(HubResponse::from));
     }
 }

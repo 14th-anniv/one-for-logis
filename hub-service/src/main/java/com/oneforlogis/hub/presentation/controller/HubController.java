@@ -1,6 +1,7 @@
 package com.oneforlogis.hub.presentation.controller;
 
 import com.oneforlogis.common.api.ApiResponse;
+import com.oneforlogis.common.api.PageResponse;
 import com.oneforlogis.common.security.UserPrincipal;
 import com.oneforlogis.hub.application.service.HubService;
 import com.oneforlogis.hub.presentation.request.HubCreateRequest;
@@ -32,14 +33,16 @@ public class HubController {
     @Operation(summary = "허브 수정", description = "허브 정보를 수정합니다. 'MASTER' 권한이 필요합니다.")
     @PreAuthorize("hasRole('MASTER')")
     @PutMapping("/{hubId}")
-    public ApiResponse<HubResponse> updateHub(@PathVariable UUID hubId, @RequestBody HubUpdateRequest request) {
+    public ApiResponse<HubResponse> updateHub(@PathVariable UUID hubId,
+            @RequestBody HubUpdateRequest request) {
         return ApiResponse.success(hubService.updateHub(hubId, request));
     }
 
     @Operation(summary = "허브 삭제", description = "허브를 논리적으로 삭제합니다. 'MASTER' 권한이 필요합니다.")
     @PreAuthorize("hasRole('MASTER')")
     @DeleteMapping("/{hubId}")
-    public ApiResponse<Void> deleteHub(@AuthenticationPrincipal UserPrincipal userPrincipal, @PathVariable UUID hubId) {
+    public ApiResponse<Void> deleteHub(@AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PathVariable UUID hubId) {
         hubService.deleteHub(userPrincipal.username(), hubId);
         return ApiResponse.success();
     }
@@ -64,4 +67,12 @@ public class HubController {
         return ApiResponse.success(hubService.getHubByName(hubName));
     }
 
+    @Operation(summary = "허브 전체 조회", description = "모든 허브를 페이지 형태로 조회합니다. (캐시 데이터 x)")
+    @GetMapping
+    public ApiResponse<PageResponse<HubResponse>> getAllHubs(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ApiResponse.success(hubService.getAllHubs(page, size));
+    }
 }
