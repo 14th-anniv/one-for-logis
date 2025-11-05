@@ -34,6 +34,7 @@ public class HubService {
             throw new CustomException(ErrorCode.HUB_ALREADY_DELETED);
         }
         hub.update(request);
+        hubRepository.flush();
         return HubUpdateResponse.from(hub);
     }
 
