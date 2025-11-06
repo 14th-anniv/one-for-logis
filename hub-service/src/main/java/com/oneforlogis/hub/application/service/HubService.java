@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class HubService {
 
     private final HubRepository hubRepository;
@@ -62,7 +63,6 @@ public class HubService {
         hubCacheService.refreshHubListCache(hubs);
     }
 
-    @Transactional(readOnly = true)
     public HubResponse getHubById(UUID hubId) {
         HubResponse cached = hubCacheService.getHubCache(hubId);
         if (cached != null) return cached;
@@ -75,7 +75,6 @@ public class HubService {
         return response;
     }
 
-    @Transactional(readOnly = true)
     public HubResponse getHubByName(String hubName) {
         HubResponse cached = hubCacheService.getHubCacheByName(hubName);
         if (cached != null) return cached;
@@ -88,7 +87,6 @@ public class HubService {
         return response;
     }
 
-    @Transactional(readOnly = true)
     public PageResponse<HubResponse> getAllHubs(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Hub> pageData = hubRepository.findByDeletedFalse(pageable);
