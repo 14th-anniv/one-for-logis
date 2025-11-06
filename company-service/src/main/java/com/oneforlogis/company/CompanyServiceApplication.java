@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Import;
 })
 @EnableFeignClients
 @EnableDiscoveryClient
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com.oneforlogis")
 public class CompanyServiceApplication {
 
     public static void main(String[] args) {
