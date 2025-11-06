@@ -1,6 +1,7 @@
 package com.oneforlogis.company.domain.model;
 
 import com.oneforlogis.common.model.BaseEntity;
+import com.oneforlogis.company.presentation.dto.request.CompanyCreateRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -46,5 +47,17 @@ public class Company extends BaseEntity {
         this.type = type;
         this.hubId = hubId;
         this.address = address;
+    }
+
+    /**
+     * 비즈니스 로직
+     */
+    public static Company createCompany(CompanyCreateRequest request){
+        return Company.builder()
+                .name(request.name())
+                .type(request.type())
+                .hubId(request.hubId())
+                .address(request.address())
+                .build();
     }
 }
