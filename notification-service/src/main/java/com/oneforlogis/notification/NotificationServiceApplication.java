@@ -8,11 +8,7 @@ import org.springframework.context.annotation.Import;
 
 @EnableFeignClients
 @EnableDiscoveryClient
-@SpringBootApplication
-@Import({
-        com.oneforlogis.common.config.SwaggerConfig.class,
-        com.oneforlogis.common.config.JpaAuditConfig.class
-})
+@SpringBootApplication(scanBasePackages = "com.oneforlogis")
 public class NotificationServiceApplication {
 
     public static void main(String[] args) {
