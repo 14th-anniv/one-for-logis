@@ -2,6 +2,9 @@ spring:
   main:
     allow-bean-definition-overriding: true
 
+  config:
+    import: optional:file:.env[.properties]
+
   datasource:
     driver-class-name: org.h2.Driver
     url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE
@@ -20,3 +23,10 @@ spring:
   h2:
     console:
       enabled: true
+
+# External API Configuration (from .env file)
+external-api:
+  slack:
+    bot-token: ${SLACK_BOT_TOKEN:xoxb-test-token}
+  gemini:
+    api-key: ${GEMINI_API_KEY:test-api-key}
