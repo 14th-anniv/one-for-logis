@@ -55,7 +55,7 @@ public class Company extends BaseEntity {
     public static Company createCompany(CompanyCreateRequest request){
         return Company.builder()
                 .name(request.name())
-                .type(request.type())
+                .type(CompanyType.from(request.type()))
                 .hubId(request.hubId())
                 .address(request.address())
                 .build();
