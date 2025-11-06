@@ -1,2 +1,8 @@
 package com.oneforlogis.company.domain.repository;
-// todo: CompanyRepo
+
+import com.oneforlogis.company.domain.model.Company;
+
+public interface CompanyRepository {
+
+    Company save(Company company);
+}
