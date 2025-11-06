@@ -27,13 +27,13 @@ public record HubResponse(
         String createdBy,
 
         @Schema(description = "생성일시", example = "2025-11-05T15:00:00")
-        LocalDateTime createdAt,
+        String createdAt,
 
         @Schema(description = "수정자", example = "user1")
         String updatedBy,
 
         @Schema(description = "수정일시", example = "2025-12-15T20:00:00")
-        LocalDateTime updatedAt
+        String updatedAt
 ){
     public static HubResponse from(Hub hub) {
         return new HubResponse(
@@ -43,9 +43,9 @@ public record HubResponse(
                 hub.getLat(),
                 hub.getLon(),
                 hub.getCreatedBy(),
-                hub.getCreatedAt(),
+                hub.getCreatedAt().toString(),
                 hub.getUpdatedBy(),
-                hub.getUpdatedAt()
+                hub.getUpdatedAt().toString()
         );
     }
 }

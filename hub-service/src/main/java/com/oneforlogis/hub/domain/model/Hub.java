@@ -30,7 +30,10 @@ public class Hub extends BaseEntity {
     @Column(unique = true)
     private String name;
     private String address;
+
+    @Column(precision = 10, scale = 6)
     private BigDecimal lat;
+    @Column(precision = 10, scale = 6)
     private BigDecimal lon;
 
     @Builder
