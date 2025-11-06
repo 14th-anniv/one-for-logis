@@ -31,6 +31,7 @@ public enum ErrorCode {
     HUB_DELETED(HttpStatus.BAD_REQUEST, "삭제된 허브입니다."),
 
     // Company
+    COMPANY_INVALID_TYPE(HttpStatus.BAD_REQUEST,"유효하지 않은 업체 타입입니다.")
 
     // Product
 
