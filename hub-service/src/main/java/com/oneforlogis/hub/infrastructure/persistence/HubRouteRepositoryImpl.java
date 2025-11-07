@@ -4,6 +4,7 @@ import com.oneforlogis.hub.domain.model.HubRoute;
 import com.oneforlogis.hub.domain.model.RouteType;
 import com.oneforlogis.hub.domain.repository.HubRouteRepository;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -31,5 +32,10 @@ public class HubRouteRepositoryImpl implements HubRouteRepository {
     @Override
     public void deleteAllByRouteType(RouteType routeType) {
         jpaRepository.deleteAllByRouteType(routeType);
+    }
+
+    @Override
+    public Optional<HubRoute> findByFromHubIdAndToHubId(UUID fromHubId, UUID toHubId) {
+        return jpaRepository.findByFromHubIdAndToHubId(fromHubId,toHubId);
     }
 }

@@ -31,6 +31,7 @@ public enum ErrorCode {
     HUB_DELETED(HttpStatus.BAD_REQUEST, "삭제된 허브입니다."),
     HUB_ROUTE_NOT_FOUND(HttpStatus.NOT_FOUND, "허브 경로를 찾을 수 없습니다."),
     HUB_ROUTE_DELETED(HttpStatus.BAD_REQUEST, "삭제된 허브경로입니다."),
+    HUB_ROUTE_NOT_DIRECT(HttpStatus.BAD_REQUEST, "직통 경로가 아닙니다."),
 
     // Company
 
@@ -44,7 +45,7 @@ public enum ErrorCode {
 
     // Redis
     REDIS_SERIALIZATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Redis 직렬화 중 오류가 발생했습니다."),
-
+    REDIS_DESERIALIZATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Redis 역직렬화 중 오류가 발생했습니다."),
     ;
 
     private final HttpStatus httpStatus;

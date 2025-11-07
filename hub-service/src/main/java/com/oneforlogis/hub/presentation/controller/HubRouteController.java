@@ -7,6 +7,7 @@ import com.oneforlogis.hub.presentation.request.HubRouteRequest;
 import com.oneforlogis.hub.presentation.response.HubRouteResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "HubRoutes", description = "허브 경로 관련 API")
@@ -54,5 +56,11 @@ public class HubRouteController {
     @GetMapping("/{routeId}")
     public ApiResponse<HubRouteResponse> getHubRoute(@PathVariable Long routeId) {
         return ApiResponse.success(hubRouteService.getHubRouteById(routeId));
+    }
+
+    @Operation(summary = "출발/도착 기준 직통 경로 조회", description = "fromHubId와 toHubId로 직통 연결된 경로를 조회합니다. 캐시를 우선 조회하며, 없으면 DB에서 조회합니다.")
+    @GetMapping("/direct")
+    public ApiResponse<HubRouteResponse> getDirectRoute(@RequestParam UUID from, @RequestParam UUID to) {
+        return ApiResponse.success(hubRouteService.getDirectRoute(from, to));
     }
 }

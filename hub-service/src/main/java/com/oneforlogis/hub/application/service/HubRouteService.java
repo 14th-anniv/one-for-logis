@@ -9,6 +9,7 @@ import com.oneforlogis.hub.infrastructure.cache.HubRouteCacheService;
 import com.oneforlogis.hub.presentation.request.HubRouteRequest;
 import com.oneforlogis.hub.presentation.response.HubResponse;
 import com.oneforlogis.hub.presentation.response.HubRouteResponse;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,6 +72,25 @@ public class HubRouteService {
         HubResponse fromHub = hubService.getHubById(route.getFromHubId());
         HubResponse toHub = hubService.getHubById(route.getToHubId());
 
+        return HubRouteResponse.from(route, fromHub, toHub);
+    }
+
+    public HubRouteResponse getDirectRoute(UUID fromHubId, UUID toHubId) {
+        HubRoute cached = hubRouteCacheService.getDirectRoute(fromHubId, toHubId);
+        if (cached != null) {
+            HubResponse fromHub = hubService.getHubById(fromHubId);
+            HubResponse toHub = hubService.getHubById(toHubId);
+            return HubRouteResponse.from(cached, fromHub, toHub);
+        }
+
+        HubRoute route = hubRouteRepository.findByFromHubIdAndToHubId(fromHubId, toHubId)
+                .orElseThrow(() -> new CustomException(ErrorCode.HUB_ROUTE_NOT_FOUND));
+        if (route.getRouteType() != RouteType.DIRECT) throw new CustomException(ErrorCode.HUB_ROUTE_NOT_DIRECT);
+
+        hubRouteCacheService.syncOnCreate(route);
+
+        HubResponse fromHub = hubService.getHubById(fromHubId);
+        HubResponse toHub = hubService.getHubById(toHubId);
         return HubRouteResponse.from(route, fromHub, toHub);
     }
 }

@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -79,5 +80,18 @@ public class HubRouteCacheService {
     private void removeDirectRouteCache(HubRoute route) {
         String key = String.format(DIRECT_ROUTE_KEY_FORMAT, route.getFromHubId(), route.getToHubId());
         redisTemplate.delete(key);
+    }
+
+    public HubRoute getDirectRoute(UUID fromHubId, UUID toHubId) {
+        String key = String.format(DIRECT_ROUTE_KEY_FORMAT, fromHubId, toHubId);
+        String json = redisTemplate.opsForValue().get(key);
+
+        if (json == null) return null;
+
+        try {
+            return objectMapper.readValue(json, HubRoute.class);
+        } catch (JsonProcessingException e) {
+            throw new CustomException(ErrorCode.REDIS_DESERIALIZATION_FAILED);
+        }
     }
 }
