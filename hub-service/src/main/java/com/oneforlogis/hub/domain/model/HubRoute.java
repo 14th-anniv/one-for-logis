@@ -45,21 +45,21 @@ public class HubRoute extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private RouteType routeType;
 
-    @Column(columnDefinition = "jsonb")
-    private String pathNodes; // 중간 경유지
+    @Column(columnDefinition = "text")
+    private String pathNodes;
 
     @Builder
-    public HubRoute(UUID fromHubId, UUID toHubId, Integer routeTime, BigDecimal routeDistance, RouteType routeType,  String pathNodes) {
+    public HubRoute(UUID fromHubId, UUID toHubId, Integer routeTime, BigDecimal routeDistance, RouteType routeType, String pathNodes) {
         this.fromHubId = fromHubId;
         this.toHubId = toHubId;
         this.routeDistance = routeDistance;
         this.routeTime = routeTime;
         this.routeType = routeType;
-        this.pathNodes = pathNodes;
+        this.pathNodes = pathNodes != null ? pathNodes : "[]";
     }
 
     public static HubRoute create(HubRouteRequest request) {
-        return com.oneforlogis.hub.domain.model.HubRoute.builder()
+        return HubRoute.builder()
                 .fromHubId(request.fromHubId())
                 .toHubId(request.toHubId())
                 .routeDistance(request.routeDistance())

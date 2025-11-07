@@ -42,6 +42,9 @@ public enum ErrorCode {
 
     // Notification
 
+    // Redis
+    REDIS_SERIALIZATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Redis 직렬화 중 오류가 발생했습니다."),
+
     ;
 
     private final HttpStatus httpStatus;
