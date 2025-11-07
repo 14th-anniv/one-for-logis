@@ -3,7 +3,7 @@ spring:
     allow-bean-definition-overriding: true
 
   config:
-    import: optional:file:.env[.properties]
+    import: optional:file:../.env[.properties]
 
   datasource:
     driver-class-name: org.h2.Driver
@@ -23,6 +23,13 @@ spring:
   h2:
     console:
       enabled: true
+
+# Eureka 비활성화 (테스트 환경)
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
 
 # External API Configuration (from .env file)
 external-api:
