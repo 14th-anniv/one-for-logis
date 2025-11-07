@@ -29,6 +29,8 @@ public enum ErrorCode {
     // Hub
     HUB_NOT_FOUND(HttpStatus.NOT_FOUND, "허브를 찾을 수 없습니다."),
     HUB_DELETED(HttpStatus.BAD_REQUEST, "삭제된 허브입니다."),
+    HUB_ROUTE_NOT_FOUND(HttpStatus.NOT_FOUND, "허브 경로를 찾을 수 없습니다."),
+    HUB_ROUTE_DELETED(HttpStatus.BAD_REQUEST, "삭제된 허브경로입니다."),
 
     // Company
 

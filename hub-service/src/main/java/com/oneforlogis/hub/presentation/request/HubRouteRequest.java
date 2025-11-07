@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-public record HubRouteCreateRequest(
+public record HubRouteRequest(
 
     @Schema(description = "출발 허브 ID", example = "3f8b52d1-22c5-4a32-a7ff-59cf3f0567ad")
     UUID fromHubId,

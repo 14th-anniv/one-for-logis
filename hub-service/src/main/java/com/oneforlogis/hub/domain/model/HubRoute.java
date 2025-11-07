@@ -1,7 +1,7 @@
 package com.oneforlogis.hub.domain.model;
 
 import com.oneforlogis.common.model.BaseEntity;
-import com.oneforlogis.hub.presentation.request.HubRouteCreateRequest;
+import com.oneforlogis.hub.presentation.request.HubRouteRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -54,13 +54,21 @@ public class HubRoute extends BaseEntity {
         this.routeType = routeType;
     }
 
-    public static HubRoute create(HubRouteCreateRequest request) {
-        return HubRoute.builder()
+    public static HubRoute create(HubRouteRequest request) {
+        return com.oneforlogis.hub.domain.model.HubRoute.builder()
                 .fromHubId(request.fromHubId())
                 .toHubId(request.toHubId())
                 .routeDistance(request.routeDistance())
                 .routeTime(request.routeTime())
                 .routeType(request.routeType())
                 .build();
+    }
+
+    public void update(HubRouteRequest request) {
+        this.fromHubId = request.fromHubId();
+        this.toHubId = request.toHubId();
+        this.routeDistance = request.routeDistance();
+        this.routeTime = request.routeTime();
+        this.routeType = request.routeType();
     }
 }
