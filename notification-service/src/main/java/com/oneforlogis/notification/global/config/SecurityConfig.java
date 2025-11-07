@@ -2,10 +2,18 @@ package com.oneforlogis.notification.global.config;
 
 import com.oneforlogis.common.security.SecurityConfigBase;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 
-// Spring Security 설정
-// common-lib의 SecurityConfigBase를 상속받아 기본 보안 설정 적용
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig extends SecurityConfigBase {
-    // 기본 설정만 사용, 추가 인가 규칙 필요시 configureAuthorization 오버라이드
+    
+    @Override
+    protected void configureAuthorization(
+            AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
+        // 내부 서비스 간 통신 엔드포인트는 인증 없이 허용
+        auth.requestMatchers("/api/v1/notifications/order").permitAll();
+    }
 }
