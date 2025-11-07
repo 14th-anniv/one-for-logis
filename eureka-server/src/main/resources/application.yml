@@ -2,6 +2,10 @@ spring:
   profiles:
     active: local
 
+# 포트 8761
+server:
+  port: 8761
+
 eureka:
   client:
     register-with-eureka: false
