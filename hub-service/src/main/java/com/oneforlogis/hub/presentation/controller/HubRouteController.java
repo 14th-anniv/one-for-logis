@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -26,26 +27,32 @@ public class HubRouteController {
 
     private final HubRouteService hubRouteService;
 
-    @Operation(summary = "신규 허브 경로 생성", description = "새로운 물류 허브 경로를 등록합니다. 'MASTER' 권한이 필요합니다.")
+    @Operation(summary = "신규 허브 직통 경로 생성", description = "새로운 허브 직통 경로를 등록합니다. 'MASTER' 권한이 필요합니다.")
     @PreAuthorize("hasRole('MASTER')")
     @PostMapping
     public ApiResponse<HubRouteResponse> createHubRoute(@RequestBody HubRouteRequest request) {
         return ApiResponse.created(hubRouteService.createHubRoute(request));
     }
 
-    @Operation(summary = "허브 경로 수정", description = "허브 경로 정보를 수정합니다. 'MASTER' 권한이 필요합니다.")
+    @Operation(summary = "허브 직통 경로 수정", description = "허브 직통 경로 정보를 수정합니다. 'MASTER' 권한이 필요합니다.")
     @PreAuthorize("hasRole('MASTER')")
     @PutMapping("/{routeId}")
     public ApiResponse<HubRouteResponse> updateHubRoute(@PathVariable Long routeId, @RequestBody HubRouteRequest request) {
         return ApiResponse.success(hubRouteService.updateHubRoute(routeId, request));
     }
 
-    @Operation(summary = "허브 경로 삭제", description = "허브 경로를 논리적으로 삭제합니다. 'MASTER' 권한이 필요합니다.")
+    @Operation(summary = "허브 직통 경로 삭제", description = "허브 직통 경로를 논리적으로 삭제합니다. 'MASTER' 권한이 필요합니다.")
     @PreAuthorize("hasRole('MASTER')")
     @DeleteMapping("/{routeId}")
     public ApiResponse<Void> deleteHubRoute(@AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable Long routeId) {
         hubRouteService.deleteHubRoute(userPrincipal.username(), routeId);
         return ApiResponse.success();
+    }
+
+    @Operation(summary = "허브 경로 id로 단일 조회", description = "routeId로 허브 경로를 조회합니다. 캐시 조회 X")
+    @GetMapping("/{routeId}")
+    public ApiResponse<HubRouteResponse> getHubRoute(@PathVariable Long routeId) {
+        return ApiResponse.success(hubRouteService.getHubRouteById(routeId));
     }
 }

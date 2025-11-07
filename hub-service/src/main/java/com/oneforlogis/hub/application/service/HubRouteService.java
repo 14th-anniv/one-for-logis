@@ -62,4 +62,15 @@ public class HubRouteService {
         hubRouteRepository.deleteAllByRouteType(RouteType.RELAY);
         hubRouteCacheService.syncOnDelete(hubRoute);
     }
+
+    public HubRouteResponse getHubRouteById(Long routeId) {
+        HubRoute route = hubRouteRepository.findById(routeId)
+                .orElseThrow(() -> new CustomException(ErrorCode.HUB_ROUTE_NOT_FOUND));
+        if (route.isDeleted()) throw new CustomException(ErrorCode.HUB_ROUTE_DELETED);
+
+        HubResponse fromHub = hubService.getHubById(route.getFromHubId());
+        HubResponse toHub = hubService.getHubById(route.getToHubId());
+
+        return HubRouteResponse.from(route, fromHub, toHub);
+    }
 }
