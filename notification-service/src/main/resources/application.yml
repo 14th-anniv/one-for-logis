@@ -49,3 +49,10 @@ eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_SERVER_URL}
+
+# External API Configuration
+external-api:
+  slack:
+    bot-token: ${SLACK_BOT_TOKEN}
+  gemini:
+    api-key: ${GEMINI_API_KEY}
