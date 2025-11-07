@@ -44,4 +44,13 @@ public class HubRouteService {
 
         return HubRouteResponse.from(hubRoute, fromHub, toHub);
     }
+
+    @Transactional
+    public void deleteHubRoute(String userName, Long routeId) {
+        HubRoute hubRoute = hubRouteRepository.findById(routeId)
+                .orElseThrow(() -> new CustomException(ErrorCode.HUB_ROUTE_NOT_FOUND));
+        if (hubRoute.isDeleted()) throw new CustomException(ErrorCode.HUB_ROUTE_DELETED);
+
+        hubRoute.markAsDeleted(userName);
+    }
 }
