@@ -45,13 +45,17 @@ public class HubRoute extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private RouteType routeType;
 
+    @Column(columnDefinition = "jsonb")
+    private String pathNodes; // 중간 경유지
+
     @Builder
-    public HubRoute(UUID fromHubId, UUID toHubId, Integer routeTime, BigDecimal routeDistance, RouteType routeType) {
+    public HubRoute(UUID fromHubId, UUID toHubId, Integer routeTime, BigDecimal routeDistance, RouteType routeType,  String pathNodes) {
         this.fromHubId = fromHubId;
         this.toHubId = toHubId;
         this.routeDistance = routeDistance;
         this.routeTime = routeTime;
         this.routeType = routeType;
+        this.pathNodes = pathNodes;
     }
 
     public static HubRoute create(HubRouteRequest request) {
@@ -60,7 +64,7 @@ public class HubRoute extends BaseEntity {
                 .toHubId(request.toHubId())
                 .routeDistance(request.routeDistance())
                 .routeTime(request.routeTime())
-                .routeType(request.routeType())
+                .routeType(RouteType.DIRECT)
                 .build();
     }
 
@@ -69,6 +73,5 @@ public class HubRoute extends BaseEntity {
         this.toHubId = request.toHubId();
         this.routeDistance = request.routeDistance();
         this.routeTime = request.routeTime();
-        this.routeType = request.routeType();
     }
 }

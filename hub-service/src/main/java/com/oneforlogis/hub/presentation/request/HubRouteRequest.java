@@ -17,8 +17,5 @@ public record HubRouteRequest(
     BigDecimal routeDistance,
 
     @Schema(description = "예상 소요 시간 (분 단위)", example = "35")
-    Integer routeTime,
-
-    @Schema(description = "경로 유형, DIRECT=직통 연결, RELAY=중계 허브를 거치는 유형", example = "DIRECT")
-    RouteType routeType
+    Integer routeTime
 ) {}
