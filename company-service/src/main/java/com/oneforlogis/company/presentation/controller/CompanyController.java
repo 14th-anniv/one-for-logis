@@ -1,7 +1,7 @@
 package com.oneforlogis.company.presentation.controller;
 
 import com.oneforlogis.common.api.ApiResponse;
-import com.oneforlogis.company.application.dto.CompanyService;
+import com.oneforlogis.company.application.CompanyService;
 import com.oneforlogis.company.presentation.dto.request.CompanyCreateRequest;
 import com.oneforlogis.company.presentation.dto.response.CompanyCreateResponse;
 import io.swagger.v3.oas.annotations.Operation;

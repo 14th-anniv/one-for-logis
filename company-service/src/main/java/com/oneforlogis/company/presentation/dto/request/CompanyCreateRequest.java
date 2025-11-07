@@ -1,6 +1,5 @@
 package com.oneforlogis.company.presentation.dto.request;
 
-import com.oneforlogis.company.domain.model.CompanyType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

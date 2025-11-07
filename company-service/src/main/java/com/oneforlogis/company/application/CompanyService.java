@@ -1,4 +1,4 @@
-package com.oneforlogis.company.application.dto;
+package com.oneforlogis.company.application;
 
 import com.oneforlogis.company.domain.model.Company;
 import com.oneforlogis.company.domain.repository.CompanyRepository;
