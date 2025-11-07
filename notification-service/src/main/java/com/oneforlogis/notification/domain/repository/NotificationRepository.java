@@ -3,6 +3,8 @@ package com.oneforlogis.notification.domain.repository;
 import com.oneforlogis.notification.domain.model.MessageStatus;
 import com.oneforlogis.notification.domain.model.MessageType;
 import com.oneforlogis.notification.domain.model.Notification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +30,11 @@ public interface NotificationRepository {
      * 모든 알림 조회 (Soft Delete 제외)
      */
     List<Notification> findAll();
+
+    /**
+     * 모든 알림 페이징 조회 (Soft Delete 제외)
+     */
+    Page<Notification> findAll(Pageable pageable);
 
     /**
      * 상태별 알림 조회
