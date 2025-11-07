@@ -6,8 +6,7 @@ import com.oneforlogis.common.exception.ErrorCode;
 import com.oneforlogis.hub.domain.model.Hub;
 import com.oneforlogis.hub.domain.repository.HubRepository;
 import com.oneforlogis.hub.infrastructure.cache.HubCacheService;
-import com.oneforlogis.hub.presentation.request.HubCreateRequest;
-import com.oneforlogis.hub.presentation.request.HubUpdateRequest;
+import com.oneforlogis.hub.presentation.request.HubRequest;
 import com.oneforlogis.hub.presentation.response.HubResponse;
 import java.util.List;
 import java.util.UUID;
@@ -27,7 +26,7 @@ public class HubService {
     private final HubCacheService hubCacheService;
 
     @Transactional
-    public HubResponse createHub(HubCreateRequest request) {
+    public HubResponse createHub(HubRequest request) {
         Hub hub = Hub.create(request);
         hubRepository.save(hub);
         HubResponse response = HubResponse.from(hub);
@@ -36,7 +35,7 @@ public class HubService {
     }
 
     @Transactional
-    public HubResponse updateHub(UUID hubId, HubUpdateRequest request) {
+    public HubResponse updateHub(UUID hubId, HubRequest request) {
         Hub hub = hubRepository.findById(hubId)
                 .orElseThrow(() -> new CustomException(ErrorCode.HUB_NOT_FOUND));
         if (hub.isDeleted()) throw new CustomException(ErrorCode.HUB_DELETED);
