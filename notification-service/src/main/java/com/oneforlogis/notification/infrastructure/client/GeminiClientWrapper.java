@@ -1,7 +1,7 @@
 package com.oneforlogis.notification.infrastructure.client;
 
+import com.oneforlogis.notification.application.service.ExternalApiLogService;
 import com.oneforlogis.notification.domain.model.ApiProvider;
-import com.oneforlogis.notification.domain.service.ApiLogDomainService;
 import com.oneforlogis.notification.infrastructure.client.gemini.GeminiApiClient;
 import com.oneforlogis.notification.infrastructure.client.gemini.GeminiRequest;
 import com.oneforlogis.notification.infrastructure.client.gemini.GeminiResponse;
@@ -19,7 +19,7 @@ import java.util.UUID;
 public class GeminiClientWrapper {
 
     private final GeminiApiClient geminiApiClient;
-    private final ApiLogDomainService apiLogDomainService;
+    private final ExternalApiLogService externalApiLogService;
 
     // Gemini 요청 with auto-logging
     public GeminiResponse generateContent(GeminiRequest request, UUID messageId) {
@@ -55,7 +55,7 @@ public class GeminiClientWrapper {
             long durationMs = System.currentTimeMillis() - startTime;
 
             // API 호출 로그 저장 (Gemini는 무료 티어라 비용 0)
-            apiLogDomainService.logApiCall(
+            externalApiLogService.logApiCall(
                     ApiProvider.GEMINI,
                     "generateContent",
                     request,

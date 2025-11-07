@@ -1,7 +1,7 @@
 package com.oneforlogis.notification.infrastructure.client;
 
+import com.oneforlogis.notification.application.service.ExternalApiLogService;
 import com.oneforlogis.notification.domain.model.ApiProvider;
-import com.oneforlogis.notification.domain.service.ApiLogDomainService;
 import com.oneforlogis.notification.infrastructure.client.slack.SlackApiClient;
 import com.oneforlogis.notification.infrastructure.client.slack.SlackMessageRequest;
 import com.oneforlogis.notification.infrastructure.client.slack.SlackMessageResponse;
@@ -19,7 +19,7 @@ import java.util.UUID;
 public class SlackClientWrapper {
 
     private final SlackApiClient slackApiClient;
-    private final ApiLogDomainService apiLogDomainService;
+    private final ExternalApiLogService externalApiLogService;
 
     // Slack 메시지 전송 with auto-logging
     public SlackMessageResponse postMessage(SlackMessageRequest request, UUID messageId) {
@@ -55,7 +55,7 @@ public class SlackClientWrapper {
             long durationMs = System.currentTimeMillis() - startTime;
 
             // API 호출 로그 저장
-            apiLogDomainService.logApiCall(
+            externalApiLogService.logApiCall(
                     ApiProvider.SLACK,
                     "chat.postMessage",
                     request,
