@@ -31,7 +31,7 @@ public enum ErrorCode {
     HUB_DELETED(HttpStatus.BAD_REQUEST, "삭제된 허브입니다."),
 
     // Company
-    COMPANY_INVALID_TYPE(HttpStatus.BAD_REQUEST,"유효하지 않은 업체 타입입니다.")
+    COMPANY_INVALID_TYPE(HttpStatus.BAD_REQUEST,"유효하지 않은 업체 타입입니다."),
 
     // Product
 
@@ -40,6 +40,8 @@ public enum ErrorCode {
     // Delivery
 
     // Notification
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다."),
+    NOTIFICATION_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "알림 발송에 실패했습니다.")
 
     ;
 
