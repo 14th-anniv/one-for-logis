@@ -3,13 +3,18 @@ package com.oneforlogis.company.presentation.controller;
 import com.oneforlogis.common.api.ApiResponse;
 import com.oneforlogis.company.application.CompanyService;
 import com.oneforlogis.company.presentation.dto.request.CompanyCreateRequest;
+import com.oneforlogis.company.presentation.dto.request.CompanyUpdateRequest;
 import com.oneforlogis.company.presentation.dto.response.CompanyCreateResponse;
+import com.oneforlogis.company.presentation.dto.response.CompanyUpdateResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,7 +29,7 @@ public class CompanyController {
 
     private final CompanyService companyService;
 
-    // todo: security 제외하고 임의 작업 -> 개발 완료 후 연동 예정
+    // todo: security 제외하고 임의 작업 -> 개발 완료 후 로직 추가 [담당 허브/업체만 update]
 
     /**
      * 업체 등록
@@ -36,5 +41,17 @@ public class CompanyController {
 
         var response = companyService.createCompany(request);
         return ApiResponse.created(response);
+    }
+
+    /**
+     * 업체 정보 수정
+     */
+    @Operation(summary = "업체 수정", description = "업체 정보를 수정합니다. 'MASTER, HUB_MANAGER(담당 허브), COMPANY_MANAGER(담당 업체)' 권한이 필요합니다.")
+    @PatchMapping("/{companyId}")
+    public ApiResponse<CompanyUpdateResponse> updateCompany(@PathVariable UUID companyId,
+            @RequestBody @Valid CompanyUpdateRequest request){
+
+        var response = companyService.updateCompany(companyId, request);
+        return ApiResponse.success(response);
     }
 }

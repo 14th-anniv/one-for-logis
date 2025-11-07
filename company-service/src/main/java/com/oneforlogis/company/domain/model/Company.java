@@ -49,6 +49,7 @@ public class Company extends BaseEntity {
         this.address = address;
     }
 
+
     /**
      * 비즈니스 로직
      */
@@ -59,5 +60,18 @@ public class Company extends BaseEntity {
                 .hubId(request.hubId())
                 .address(request.address())
                 .build();
+    }
+
+    /**
+     * 업데이트 필드 - 업체명, 타입, 주소
+     */
+    public void updateName(String name) {
+        this.name = name;
+    }
+    public void updateType(CompanyType type) {
+        this.type = type;
+    }
+    public void updateAddress(String address) {
+        this.address = address;
     }
 }
