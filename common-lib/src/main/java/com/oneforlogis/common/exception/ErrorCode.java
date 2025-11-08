@@ -32,7 +32,8 @@ public enum ErrorCode {
 
     // Company
     COMPANY_INVALID_TYPE(HttpStatus.BAD_REQUEST,"유효하지 않은 업체 타입입니다."),
-    COMPANY_NOT_FOUND(HttpStatus.NOT_FOUND, "업체를 찾을 수 없습니다.")
+    COMPANY_NOT_FOUND(HttpStatus.NOT_FOUND, "업체를 찾을 수 없습니다."),
+    COMPANY_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "삭제 처리 된 업체입니다.")
 
     // Product
 
