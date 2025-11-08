@@ -32,6 +32,7 @@ public enum ErrorCode {
     HUB_ROUTE_NOT_FOUND(HttpStatus.NOT_FOUND, "허브 경로를 찾을 수 없습니다."),
     HUB_ROUTE_DELETED(HttpStatus.BAD_REQUEST, "삭제된 허브경로입니다."),
     HUB_ROUTE_NOT_DIRECT(HttpStatus.BAD_REQUEST, "직통 경로가 아닙니다."),
+    HUB_INVALID_REQUEST(HttpStatus.BAD_REQUEST, "조회할 허브 정보가 없습니다."),
 
     // Company
 

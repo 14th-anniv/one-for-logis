@@ -2,6 +2,8 @@ package com.oneforlogis.hub.infrastructure.cache;
 
 import com.oneforlogis.hub.domain.model.Hub;
 import com.oneforlogis.hub.presentation.response.HubResponse;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -67,5 +69,22 @@ public class HubCacheService {
         String hubId = (String) redisTemplate.opsForValue().get(HUB_NAME_KEY_PREFIX + encodedName);
         if (hubId == null) return null;
         return getHubCache(UUID.fromString(hubId));
+    }
+
+    public Map<UUID, HubResponse> getHubsBulk(List<UUID> hubIds) {
+        List<String> keys = hubIds.stream()
+                .map(id -> HUB_ID_KEY_PREFIX + id)
+                .toList();
+
+        List<Object> values = redisTemplate.opsForValue().multiGet(keys);
+        Map<UUID, HubResponse> result = new HashMap<>();
+
+        for (int i = 0; i < hubIds.size(); i++) {
+            Object value = values != null ? values.get(i) : null;
+            if (value instanceof HubResponse hubResponse) {
+                result.put(hubIds.get(i), hubResponse);
+            }
+        }
+        return result;
     }
 }
