@@ -1,6 +1,7 @@
 package com.oneforlogis.company.presentation.controller;
 
 import com.oneforlogis.common.api.ApiResponse;
+import com.oneforlogis.common.security.UserPrincipal;
 import com.oneforlogis.company.application.CompanyService;
 import com.oneforlogis.company.presentation.dto.request.CompanyCreateRequest;
 import com.oneforlogis.company.presentation.dto.request.CompanyUpdateRequest;
@@ -12,7 +13,11 @@ import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,21 +42,37 @@ public class CompanyController {
     @Operation(summary = "업체 등록", description = "새로운 업체를 등록합니다. 'MASTER, HUB_MANAGER(담당 허브)' 권한이 필요합니다.")
     @PreAuthorize("hasRole('MASTER') or hasRole('HUB_MANAGER')")
     @PostMapping
-    public ApiResponse<CompanyCreateResponse> createCompany(@RequestBody @Valid CompanyCreateRequest request){
+    public ResponseEntity<ApiResponse<CompanyCreateResponse>> createCompany(@RequestBody @Valid CompanyCreateRequest request){
 
         var response = companyService.createCompany(request);
-        return ApiResponse.created(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(response));
     }
 
     /**
      * 업체 정보 수정
      */
     @Operation(summary = "업체 수정", description = "업체 정보를 수정합니다. 'MASTER, HUB_MANAGER(담당 허브), COMPANY_MANAGER(담당 업체)' 권한이 필요합니다.")
+    @PreAuthorize("hasRole('MASTER') or hasRole('HUB_MANAGER') or hasRole('COMPANY_MANAGER')")
     @PatchMapping("/{companyId}")
-    public ApiResponse<CompanyUpdateResponse> updateCompany(@PathVariable UUID companyId,
+    public ResponseEntity<ApiResponse<CompanyUpdateResponse>> updateCompany(@PathVariable UUID companyId,
             @RequestBody @Valid CompanyUpdateRequest request){
 
         var response = companyService.updateCompany(companyId, request);
-        return ApiResponse.success(response);
+        return ResponseEntity.ok().body(ApiResponse.success(response));
+    }
+
+    /**
+     * 업체 정보 삭제
+     * + noContent도 메세지를 띄움 (ok) 처리
+     */
+    @Operation(summary = "업체 삭제", description = "업체를 삭제합니다. 'MASTER, HUB_MANAGER(담당 허브)' 권한이 필요합니다.")
+    @PreAuthorize("hasRole('MASTER') or hasRole('HUB_MANAGER')")
+    @DeleteMapping("/{companyId}")
+    public ResponseEntity<ApiResponse<Void>> deleteCompany(@PathVariable UUID companyId,
+            @AuthenticationPrincipal UserPrincipal userPrincipal){
+
+        String userName = userPrincipal.username();
+        companyService.deleteCompany(companyId,userName);
+        return ResponseEntity.ok().body(ApiResponse.noContent());
     }
 }

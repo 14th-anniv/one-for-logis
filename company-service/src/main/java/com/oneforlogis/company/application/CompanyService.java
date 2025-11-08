@@ -53,6 +53,14 @@ public class CompanyService {
         return CompanyUpdateResponse.from(company);
     }
 
+    // 업체 삭제
+    @Transactional
+    public void deleteCompany(UUID companyId, String userName){
+        Company company = getCompanyById(companyId);
+        log.info("service - del company userName: {}", userName);
+        company.deleteCompany(userName);
+    }
+
 
 
     /**
