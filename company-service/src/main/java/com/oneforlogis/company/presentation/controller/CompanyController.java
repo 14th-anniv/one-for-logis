@@ -72,7 +72,7 @@ public class CompanyController {
             @AuthenticationPrincipal UserPrincipal userPrincipal){
 
         String userName = userPrincipal.username();
-        companyService.deleteCompany(companyId,userName);
+        companyService.deleteCompany(companyId, userName);
         return ResponseEntity.ok().body(ApiResponse.noContent());
     }
 }

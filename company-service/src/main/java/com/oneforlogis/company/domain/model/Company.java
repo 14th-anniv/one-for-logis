@@ -1,8 +1,6 @@
 package com.oneforlogis.company.domain.model;
 
-import com.oneforlogis.common.exception.ErrorCode;
 import com.oneforlogis.common.model.BaseEntity;
-import com.oneforlogis.company.domain.exception.AlreadyDeletedCompanyException;
 import com.oneforlogis.company.presentation.dto.request.CompanyCreateRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -81,9 +79,6 @@ public class Company extends BaseEntity {
      * soft del
      */
     public void deleteCompany(String userName) {
-        if (this.deleted) {
-            throw new AlreadyDeletedCompanyException(ErrorCode.COMPANY_ALREADY_DELETED);
-        }
         this.markAsDeleted(userName);
     }
 }
