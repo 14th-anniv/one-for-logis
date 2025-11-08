@@ -1,9 +1,12 @@
 package com.oneforlogis.hub.presentation.response;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oneforlogis.hub.domain.model.HubRoute;
 import com.oneforlogis.hub.domain.model.RouteType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 public record HubRouteResponse(
@@ -32,6 +35,9 @@ public record HubRouteResponse(
         @Schema(description = "경로 유형 (DIRECT, RELAY)", example = "DIRECT")
         RouteType routeType,
 
+        @Schema(description = "경유 허브 목록 (출발지~도착지 순서)", example = "[\"서울\", \"경기남부\", \"대전\"]")
+        List<UUID> pathNodes,
+
         @Schema(description = "생성자", example = "user1")
         String createdBy,
         @Schema(description = "생성일시", example = "2025-11-05T15:00:00")
@@ -43,6 +49,17 @@ public record HubRouteResponse(
         String updatedAt
 ) {
     public static HubRouteResponse from(HubRoute route, HubResponse fromHub, HubResponse toHub) {
+        List<UUID> pathList = null;
+        try {
+            String raw = route.getPathNodes();
+            if (raw != null && !raw.isBlank() && !raw.equals("[]")) {
+                ObjectMapper mapper = new ObjectMapper();
+                pathList = mapper.readValue(raw, new TypeReference<List<UUID>>() {});
+            }
+        } catch (Exception e) {
+            pathList = List.of();
+        }
+
         return new HubRouteResponse(
                 route.getId(),
                 fromHub.id(),
@@ -54,6 +71,7 @@ public record HubRouteResponse(
                 route.getRouteDistance(),
                 route.getRouteTime(),
                 route.getRouteType(),
+                pathList,
                 route.getCreatedBy(),
                 route.getCreatedAt().toString(),
                 route.getUpdatedBy(),
