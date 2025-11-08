@@ -1,4 +1,4 @@
-package com.oneforlogis.company.presentation.dto.response;
+package com.oneforlogis.company.application.dto.response;
 
 import com.oneforlogis.company.domain.model.Company;
 import com.oneforlogis.company.domain.model.CompanyType;

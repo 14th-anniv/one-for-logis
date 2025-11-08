@@ -1,4 +1,4 @@
-package com.oneforlogis.company.presentation.dto.request;
+package com.oneforlogis.company.application.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

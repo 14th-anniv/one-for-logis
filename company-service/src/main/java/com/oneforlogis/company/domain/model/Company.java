@@ -1,7 +1,7 @@
 package com.oneforlogis.company.domain.model;
 
 import com.oneforlogis.common.model.BaseEntity;
-import com.oneforlogis.company.presentation.dto.request.CompanyCreateRequest;
+import com.oneforlogis.company.application.dto.request.CompanyCreateRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
