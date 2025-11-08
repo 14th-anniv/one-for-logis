@@ -1,6 +1,7 @@
 package com.oneforlogis.hub.presentation.controller;
 
 import com.oneforlogis.common.api.ApiResponse;
+import com.oneforlogis.common.api.PageResponse;
 import com.oneforlogis.common.security.UserPrincipal;
 import com.oneforlogis.hub.application.service.HubRouteService;
 import com.oneforlogis.hub.presentation.request.HubRouteRequest;
@@ -52,7 +53,7 @@ public class HubRouteController {
         return ApiResponse.success();
     }
 
-    @Operation(summary = "허브 경로 id로 단일 조회", description = "routeId로 허브 경로를 조회합니다. 캐시 조회 X")
+    @Operation(summary = "허브 경로 id로 단일 조회", description = "routeId로 허브 경로를 조회합니다. (캐시 미사용)")
     @GetMapping("/{routeId}")
     public ApiResponse<HubRouteResponse> getHubRoute(@PathVariable Long routeId) {
         return ApiResponse.success(hubRouteService.getHubRouteById(routeId));
@@ -62,5 +63,14 @@ public class HubRouteController {
     @GetMapping("/direct")
     public ApiResponse<HubRouteResponse> getDirectRoute(@RequestParam UUID from, @RequestParam UUID to) {
         return ApiResponse.success(hubRouteService.getDirectRoute(from, to));
+    }
+
+    @Operation(summary = "허브 경로 전체 조회", description = "모든 허브 경로를 페이지 형태로 조회합니다.")
+    @GetMapping("/all")
+    public ApiResponse<PageResponse<HubRouteResponse>> getAllHubRoutes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ApiResponse.success(hubRouteService.getAllHubRoutes(page, size));
     }
 }

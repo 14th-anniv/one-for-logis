@@ -6,6 +6,8 @@ import com.oneforlogis.hub.domain.repository.HubRouteRepository;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @RequiredArgsConstructor
@@ -37,5 +39,10 @@ public class HubRouteRepositoryImpl implements HubRouteRepository {
     @Override
     public Optional<HubRoute> findByFromHubIdAndToHubId(UUID fromHubId, UUID toHubId) {
         return jpaRepository.findByFromHubIdAndToHubId(fromHubId,toHubId);
+    }
+
+    @Override
+    public Page<HubRoute> findByDeletedFalse(Pageable pageable) {
+        return jpaRepository.findByDeletedFalse(pageable);
     }
 }

@@ -1,5 +1,6 @@
 package com.oneforlogis.hub.application.service;
 
+import com.oneforlogis.common.api.PageResponse;
 import com.oneforlogis.common.exception.CustomException;
 import com.oneforlogis.common.exception.ErrorCode;
 import com.oneforlogis.hub.domain.model.HubRoute;
@@ -9,8 +10,14 @@ import com.oneforlogis.hub.infrastructure.cache.HubRouteCacheService;
 import com.oneforlogis.hub.presentation.request.HubRouteRequest;
 import com.oneforlogis.hub.presentation.response.HubResponse;
 import com.oneforlogis.hub.presentation.response.HubRouteResponse;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -92,5 +99,25 @@ public class HubRouteService {
         HubResponse fromHub = hubService.getHubById(fromHubId);
         HubResponse toHub = hubService.getHubById(toHubId);
         return HubRouteResponse.from(route, fromHub, toHub);
+    }
+
+    public PageResponse<HubRouteResponse> getAllHubRoutes(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<HubRoute> routes = hubRouteRepository.findByDeletedFalse(pageable);
+
+        List<UUID> hubIds = routes.stream()
+                .flatMap(route -> Stream.of(route.getFromHubId(), route.getToHubId()))
+                .distinct()
+                .toList();
+
+        Map<UUID, HubResponse> hubMap = hubService.getHubsBulk(hubIds);
+
+        Page<HubRouteResponse> responsePage = routes.map(route -> {
+            HubResponse fromHub = hubMap.get(route.getFromHubId());
+            HubResponse toHub = hubMap.get(route.getToHubId());
+            return HubRouteResponse.from(route, fromHub, toHub);
+        });
+
+        return PageResponse.fromPage(responsePage);
     }
 }
