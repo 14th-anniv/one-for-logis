@@ -2,13 +2,13 @@ package com.oneforlogis.company.application;
 
 import com.oneforlogis.common.exception.CustomException;
 import com.oneforlogis.common.exception.ErrorCode;
-import com.oneforlogis.company.domain.model.Company;
-import com.oneforlogis.company.domain.model.CompanyType;
-import com.oneforlogis.company.domain.repository.CompanyRepository;
 import com.oneforlogis.company.application.dto.request.CompanyCreateRequest;
 import com.oneforlogis.company.application.dto.request.CompanyUpdateRequest;
 import com.oneforlogis.company.application.dto.response.CompanyCreateResponse;
 import com.oneforlogis.company.application.dto.response.CompanyUpdateResponse;
+import com.oneforlogis.company.domain.model.Company;
+import com.oneforlogis.company.domain.model.CompanyType;
+import com.oneforlogis.company.domain.repository.CompanyRepository;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +29,13 @@ public class CompanyService {
     @Transactional
     public CompanyCreateResponse createCompany(CompanyCreateRequest request){
 
-        Company company = Company.createCompany(request);
+        Company company = Company.createCompany(
+                request.name(),
+                CompanyType.from(request.type()),
+                request.hubId(),
+                request.address()
+        );
+
         Company savedCompany = companyRepository.save(company);
         return CompanyCreateResponse.from(savedCompany);
     }

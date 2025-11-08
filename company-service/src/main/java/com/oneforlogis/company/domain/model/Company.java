@@ -53,12 +53,14 @@ public class Company extends BaseEntity {
     /**
      * 비즈니스 로직
      */
-    public static Company createCompany(CompanyCreateRequest request){
+
+    public static Company createCompany(
+            String name, CompanyType type, UUID hubId, String address){
         return Company.builder()
-                .name(request.name())
-                .type(CompanyType.from(request.type()))
-                .hubId(request.hubId())
-                .address(request.address())
+                .name(name)
+                .type(type)
+                .hubId(hubId)
+                .address(address)
                 .build();
     }
 
