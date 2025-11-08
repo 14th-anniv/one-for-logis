@@ -5,6 +5,7 @@ import com.oneforlogis.common.exception.ErrorCode;
 import com.oneforlogis.company.application.dto.request.CompanyCreateRequest;
 import com.oneforlogis.company.application.dto.request.CompanyUpdateRequest;
 import com.oneforlogis.company.application.dto.response.CompanyCreateResponse;
+import com.oneforlogis.company.application.dto.response.CompanyDetailResponse;
 import com.oneforlogis.company.application.dto.response.CompanyUpdateResponse;
 import com.oneforlogis.company.domain.model.Company;
 import com.oneforlogis.company.domain.model.CompanyType;
@@ -65,6 +66,12 @@ public class CompanyService {
         Company company = getCompanyById(companyId);
         log.info("service - del company userName: {}", userName);
         company.deleteCompany(userName);
+    }
+
+    // 업체 단건 조회
+    public CompanyDetailResponse getCompanyDetail(UUID companyId){
+        Company company = getCompanyById(companyId);
+        return CompanyDetailResponse.from(company);
     }
 
 

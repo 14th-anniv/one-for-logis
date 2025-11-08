@@ -6,6 +6,7 @@ import com.oneforlogis.company.application.CompanyService;
 import com.oneforlogis.company.application.dto.request.CompanyCreateRequest;
 import com.oneforlogis.company.application.dto.request.CompanyUpdateRequest;
 import com.oneforlogis.company.application.dto.response.CompanyCreateResponse;
+import com.oneforlogis.company.application.dto.response.CompanyDetailResponse;
 import com.oneforlogis.company.application.dto.response.CompanyUpdateResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -74,5 +76,15 @@ public class CompanyController {
         String userName = userPrincipal.username();
         companyService.deleteCompany(companyId, userName);
         return ResponseEntity.ok().body(ApiResponse.noContent());
+    }
+
+    /**
+     * 업체 단건 조회 - ALL
+     */
+    @GetMapping("/{companyId}")
+    @Operation(summary = "업체 단건 조회", description = "업체 ID로 단일 업체 정보를 조회합니다.")
+    public ResponseEntity<ApiResponse<CompanyDetailResponse>> getCompanyDetail(@PathVariable UUID companyId) {
+        var response = companyService.getCompanyDetail(companyId);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }
