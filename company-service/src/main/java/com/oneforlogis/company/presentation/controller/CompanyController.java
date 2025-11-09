@@ -85,8 +85,8 @@ public class CompanyController {
     /**
      * 업체 단건 조회
      */
-    @GetMapping("/{companyId}")
     @Operation(summary = "업체 단건 조회", description = "업체 ID로 단일 업체 정보를 조회합니다.")
+    @GetMapping("/{companyId}")
     public ResponseEntity<ApiResponse<CompanyDetailResponse>> getCompanyDetail(@PathVariable UUID companyId) {
         var response = companyService.getCompanyDetail(companyId);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -101,6 +101,7 @@ public class CompanyController {
      * @param isAsc 정렬 방향 (true: 오름차순, false: 내림차순(default))
      * @return 페이징된 DTO
      */
+    @Operation(summary = "업체 전체(검색) 조회", description = "업체 리스트를 조회합니다.")
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<CompanySearchResponse>>> getCompanies(
             @RequestParam(required = false) String companyName,
