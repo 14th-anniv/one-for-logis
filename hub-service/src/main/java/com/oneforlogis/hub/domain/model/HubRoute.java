@@ -1,6 +1,7 @@
 package com.oneforlogis.hub.domain.model;
 
 import com.oneforlogis.common.model.BaseEntity;
+import com.oneforlogis.hub.application.dto.DijkstraResult;
 import com.oneforlogis.hub.presentation.request.HubRouteRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -65,6 +66,17 @@ public class HubRoute extends BaseEntity {
                 .routeDistance(request.routeDistance())
                 .routeTime(request.routeTime())
                 .routeType(RouteType.DIRECT)
+                .build();
+    }
+
+    public static HubRoute createRelayRoute(UUID fromHubId, UUID toHubId, DijkstraResult result, String pathJson) {
+        return HubRoute.builder()
+                .fromHubId(fromHubId)
+                .toHubId(toHubId)
+                .routeDistance(result.distance())
+                .routeTime(result.time())
+                .routeType(RouteType.RELAY)
+                .pathNodes(pathJson)
                 .build();
     }
 

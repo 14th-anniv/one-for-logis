@@ -1,11 +1,15 @@
 package com.oneforlogis.hub.application.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.oneforlogis.common.api.PageResponse;
 import com.oneforlogis.common.exception.CustomException;
 import com.oneforlogis.common.exception.ErrorCode;
+import com.oneforlogis.hub.application.dto.DijkstraResult;
 import com.oneforlogis.hub.domain.model.HubRoute;
 import com.oneforlogis.hub.domain.model.RouteType;
 import com.oneforlogis.hub.domain.repository.HubRouteRepository;
+import com.oneforlogis.hub.application.dto.HubEdge;
 import com.oneforlogis.hub.infrastructure.cache.HubRouteCacheService;
 import com.oneforlogis.hub.presentation.request.HubRouteRequest;
 import com.oneforlogis.hub.presentation.response.HubResponse;
@@ -29,6 +33,7 @@ public class HubRouteService {
     private final HubRouteRepository hubRouteRepository;
     private final HubService hubService;
     private final HubRouteCacheService hubRouteCacheService;
+    private final DijkstraService dijkstraService;
 
     @Transactional
     public HubRouteResponse createHubRoute(HubRouteRequest request) {
@@ -120,4 +125,34 @@ public class HubRouteService {
 
         return PageResponse.fromPage(responsePage);
     }
+
+    public HubRouteResponse getShortestRoute(UUID fromHubId, UUID toHubId) {
+        HubRouteResponse cached = hubRouteCacheService.getShortestRoute(fromHubId, toHubId);
+        if (cached != null) return cached;
+
+        Map<UUID, List<HubEdge>> graph = hubRouteCacheService.getGraph();
+
+        DijkstraResult result = dijkstraService.findShortestPath(graph, fromHubId, toHubId);
+
+        ObjectMapper mapper = new ObjectMapper();
+        String pathJson;
+        try {
+            pathJson = mapper.writeValueAsString(result.pathNodes());
+        } catch (JsonProcessingException e) {
+            throw new CustomException(ErrorCode.JSON_SERIALIZATION_FAILED);
+        }
+
+        HubRoute shortestRoute = HubRoute.createRelayRoute(fromHubId, toHubId, result, pathJson);
+
+        hubRouteRepository.save(shortestRoute);
+        HubResponse fromHub = hubService.getHubById(fromHubId);
+        HubResponse toHub = hubService.getHubById(toHubId);
+
+        HubRouteResponse response = HubRouteResponse.from(shortestRoute, fromHub, toHub);
+
+        hubRouteCacheService.saveShortestRouteCache(response);
+
+        return response;
+    }
+
 }

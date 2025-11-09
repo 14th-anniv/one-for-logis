@@ -4,9 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oneforlogis.common.exception.CustomException;
 import com.oneforlogis.common.exception.ErrorCode;
+import com.oneforlogis.hub.application.dto.HubEdge;
 import com.oneforlogis.hub.domain.model.HubRoute;
+import com.oneforlogis.hub.presentation.response.HubRouteResponse;
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -20,6 +23,7 @@ public class HubRouteCacheService {
 
     private static final String GRAPH_KEY_PREFIX = "hub:graph:";
     private static final String DIRECT_ROUTE_KEY_FORMAT = "hub:route:from:%s:to:%s";
+    private static final String SHORTEST_ROUTE_KEY_FORMAT = "hub:path:from:%s:to:%s";
     private static final String RELAY_ROUTE_KEY_ALL = "hub:path:*";
 
     private final RedisTemplate<String, String> redisTemplate;
@@ -92,6 +96,56 @@ public class HubRouteCacheService {
             return objectMapper.readValue(json, HubRoute.class);
         } catch (JsonProcessingException e) {
             throw new CustomException(ErrorCode.REDIS_DESERIALIZATION_FAILED);
+        }
+    }
+
+    public HubRouteResponse getShortestRoute(UUID fromHubId, UUID toHubId) {
+        String key = String.format(SHORTEST_ROUTE_KEY_FORMAT, fromHubId, toHubId);
+        String json = redisTemplate.opsForValue().get(key);
+
+        if (json == null) return null;
+
+        try {
+            return objectMapper.readValue(json, HubRouteResponse.class);
+        } catch (JsonProcessingException e) {
+            throw new CustomException(ErrorCode.REDIS_DESERIALIZATION_FAILED);
+        }
+    }
+
+    public Map<UUID, List<HubEdge>> getGraph() {
+        Map<UUID, List<HubEdge>> graph = new HashMap<>();
+        Set<String> keys = redisTemplate.keys(GRAPH_KEY_PREFIX + "*");
+        if (keys == null || keys.isEmpty()) return graph;
+
+        for (String key : keys) {
+            String fromHubId = key.replace(GRAPH_KEY_PREFIX, "");
+            Map<Object, Object> entries = redisTemplate.opsForHash().entries(key);
+
+            List<HubEdge> edges = entries.entrySet().stream()
+                .map(entry -> {
+                    UUID toHubId = UUID.fromString(entry.getKey().toString());
+                    try {
+                        HubEdge edge = objectMapper.readValue(entry.getValue().toString(), HubEdge.class);
+                        return new HubEdge(toHubId, edge.routeDistance(), edge.routeTime());
+                    } catch (JsonProcessingException e) {
+                        throw new CustomException(ErrorCode.REDIS_DESERIALIZATION_FAILED);
+                    }
+                })
+                .toList();
+
+            graph.put(UUID.fromString(fromHubId), edges);
+        }
+
+        return graph;
+    }
+
+    public void saveShortestRouteCache(HubRouteResponse response) {
+        String key = String.format(SHORTEST_ROUTE_KEY_FORMAT, response.fromHubId(), response.toHubId());
+        try {
+            String json = objectMapper.writeValueAsString(response);
+            redisTemplate.opsForValue().set(key, json, Duration.ofDays(7));
+        } catch (JsonProcessingException e) {
+            throw new CustomException(ErrorCode.REDIS_SERIALIZATION_FAILED);
         }
     }
 }
