@@ -6,6 +6,7 @@ import com.oneforlogis.common.security.UserPrincipal;
 import com.oneforlogis.hub.application.service.HubRouteService;
 import com.oneforlogis.hub.presentation.request.HubRouteRequest;
 import com.oneforlogis.hub.presentation.response.HubRouteResponse;
+import com.oneforlogis.hub.presentation.response.ShortestRouteResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.UUID;
@@ -84,7 +85,7 @@ public class HubRouteController {
 
     @Operation(summary = "허브 간 최단 경로 조회", description = "출발지와 도착지를 기준으로 최단 경로를 계산하거나 캐시된 결과를 반환합니다.")
     @GetMapping("/shortest")
-    public ApiResponse<HubRouteResponse> getShortestRoute(@RequestParam UUID from, @RequestParam UUID to) {
-        return ApiResponse.success(hubRouteService.getShortestRoute(from, to));
+    public ApiResponse<ShortestRouteResponse> getShortestRoute(@RequestParam UUID fromHubId, @RequestParam UUID toHubId) {
+        return ApiResponse.success(hubRouteService.getShortestRoute(fromHubId, toHubId));
     }
 }

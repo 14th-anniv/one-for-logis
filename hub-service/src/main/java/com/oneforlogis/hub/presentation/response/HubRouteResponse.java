@@ -9,23 +9,22 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
+@Schema(description = "허브 경로 응답 DTO")
 public record HubRouteResponse(
         @Schema(description = "경로 ID", example = "1")
         Long id,
 
-        @Schema(description = "출발 허브 ID", example = "7a8c6e44-81d5-a3b7-3b76-c85a807f0388")
-        UUID fromHubId,
-        @Schema(description = "출발 허브 이름", example = "서울 센터")
-        String fromHubName,
-        @Schema(description = "출발 허브 주소", example = "서울특별시 송파구 송파대로 55")
-        String fromHubAddress,
+        @Schema(
+                description = "출발 허브",
+                example = "{\"id\":\"d0c14c9e-08f7-46c2-a4a6-c79abfa58f56\",\"name\":\"서울 센터\",\"address\":\"서울특별시 송파구 송파대로 55\"}"
+        )
+        HubSimpleResponse fromHub,
 
-        @Schema(description = "도착 허브 ID", example = "3f2bce91-69b7-4d82-b0d0-88a144d97a11")
-        UUID toHubId,
-        @Schema(description = "도착 허브 이름", example = "경기 남부 센터")
-        String toHubName,
-        @Schema(description = "도착 허브 주소", example = "경기도 이천시 덕평로 257-21")
-        String toHubAddress,
+        @Schema(
+                description = "도착 허브",
+                example = "{\"id\":\"845bd770-13d0-4337-a736-642186a6409b\",\"name\":\"대전광역시 센터\",\"address\":\"대전 서구 둔산로 100\"}"
+        )
+        HubSimpleResponse toHub,
 
         @Schema(description = "허브 간 거리 (km 단위)", example = "35.27")
         BigDecimal routeDistance,
@@ -35,7 +34,7 @@ public record HubRouteResponse(
         @Schema(description = "경로 유형 (DIRECT, RELAY)", example = "DIRECT")
         RouteType routeType,
 
-        @Schema(description = "경유 허브 목록 (출발지~도착지 순서)", example = "[\"서울\", \"경기남부\", \"대전\"]")
+        @Schema(description = "경유 허브 목록 (출발지~도착지 순서)", example = "[\"d0c14c9e-08f7-46c2-a4a6-c79abfa58f56\", \"845bd770-13d0-4337-a736-642186a6409b\"]")
         List<UUID> pathNodes,
 
         @Schema(description = "생성자", example = "user1")
@@ -62,12 +61,8 @@ public record HubRouteResponse(
 
         return new HubRouteResponse(
                 route.getId(),
-                fromHub.id(),
-                fromHub.name(),
-                fromHub.address(),
-                toHub.id(),
-                toHub.name(),
-                toHub.address(),
+                HubSimpleResponse.of(fromHub),
+                HubSimpleResponse.of(toHub),
                 route.getRouteDistance(),
                 route.getRouteTime(),
                 route.getRouteType(),

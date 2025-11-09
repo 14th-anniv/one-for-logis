@@ -38,9 +38,11 @@ public class DijkstraService {
             if (!graph.containsKey(current)) continue;
 
             for (HubEdge edge : graph.get(current)) {
-                UUID neighbor = edge.toHubId();
-                BigDecimal newDist = distances.get(current).add(edge.routeDistance());
-                int newTime = times.get(current) + edge.routeTime();
+                HubEdge currentEdge = new HubEdge(current, edge.toHubId(), edge.routeDistance(), edge.routeTime());
+
+                UUID neighbor = currentEdge.toHubId();
+                BigDecimal newDist = distances.get(current).add(currentEdge.routeDistance());
+                int newTime = times.get(current) + currentEdge.routeTime();
 
                 if (newDist.compareTo(distances.get(neighbor)) < 0) {
                     distances.put(neighbor, newDist);
@@ -51,18 +53,26 @@ public class DijkstraService {
             }
         }
 
-        if (!previous.containsKey(targetHub)) {
-            throw new CustomException(ErrorCode.HUB_ROUTE_PATH_NOT_FOUND);
-        }
+        if (!previous.containsKey(targetHub)) throw new CustomException(ErrorCode.HUB_ROUTE_PATH_NOT_FOUND);
 
         List<UUID> path = new ArrayList<>();
+        List<HubEdge> edges = new ArrayList<>();
         UUID current = targetHub;
-        while (previous.containsKey(current)) {
-            path.add(current);
-            current = previous.get(current);
-        }
-        Collections.reverse(path);
 
-        return new DijkstraResult(distances.get(targetHub), times.get(targetHub), path);
+        while (previous.containsKey(current)) {
+            UUID prev = previous.get(current);
+            path.add(current);
+            UUID curr = current;
+            graph.get(prev).stream()
+                    .filter(e -> e.toHubId().equals(curr))
+                    .findFirst()
+                    .ifPresent(edges::add);
+            current = prev;
+        }
+
+        Collections.reverse(path);
+        Collections.reverse(edges);
+
+        return new DijkstraResult(distances.get(targetHub), times.get(targetHub), path, edges);
     }
 }

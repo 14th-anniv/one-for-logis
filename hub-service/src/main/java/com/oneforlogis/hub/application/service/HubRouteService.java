@@ -14,6 +14,9 @@ import com.oneforlogis.hub.infrastructure.cache.HubRouteCacheService;
 import com.oneforlogis.hub.presentation.request.HubRouteRequest;
 import com.oneforlogis.hub.presentation.response.HubResponse;
 import com.oneforlogis.hub.presentation.response.HubRouteResponse;
+import com.oneforlogis.hub.presentation.response.ShortestRouteResponse;
+import com.oneforlogis.hub.presentation.response.HubSimpleResponse;
+import com.oneforlogis.hub.presentation.response.RouteEdgeResponse;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -133,12 +136,18 @@ public class HubRouteService {
     }
 
     @Transactional
-    public HubRouteResponse getShortestRoute(UUID fromHubId, UUID toHubId) {
-        HubRouteResponse cached = hubRouteCacheService.getShortestRoute(fromHubId, toHubId);
+    public ShortestRouteResponse getShortestRoute(UUID fromHubId, UUID toHubId) {
+        ShortestRouteResponse cached = hubRouteCacheService.getShortestRoute(fromHubId, toHubId);
         if (cached != null) return cached;
 
-        Map<UUID, List<HubEdge>> graph = hubRouteCacheService.getGraph();
+        HubRoute direct = hubRouteCacheService.getDirectRoute(fromHubId, toHubId);
+        if (direct != null) {
+            HubResponse fromHub = hubService.getHubById(direct.getFromHubId());
+            HubResponse toHub = hubService.getHubById(direct.getToHubId());
+            return ShortestRouteResponse.fromDirect(direct, fromHub, toHub);
+        }
 
+        Map<UUID, List<HubEdge>> graph = hubRouteCacheService.getGraph();
         DijkstraResult result = dijkstraService.findShortestPath(graph, fromHubId, toHubId);
 
         ObjectMapper mapper = new ObjectMapper();
@@ -150,16 +159,31 @@ public class HubRouteService {
         }
 
         HubRoute shortestRoute = HubRoute.createRelayRoute(fromHubId, toHubId, result, pathJson);
-
         hubRouteRepository.save(shortestRoute);
-        HubResponse fromHub = hubService.getHubById(fromHubId);
-        HubResponse toHub = hubService.getHubById(toHubId);
 
-        HubRouteResponse response = HubRouteResponse.from(shortestRoute, fromHub, toHub);
+        List<UUID> allHubIds = Stream.concat(
+                Stream.of(fromHubId, toHubId),
+                result.pathNodes().stream()
+        ).distinct().toList();
+
+        Map<UUID, HubResponse> hubMap = hubService.getHubsBulk(allHubIds);
+
+        HubResponse fromHub = hubMap.get(fromHubId);
+        HubResponse toHub = hubMap.get(toHubId);
+
+        List<HubSimpleResponse> pathNodes = result.pathNodes().stream()
+                .map(hubMap::get)
+                .map(HubSimpleResponse::of)
+                .toList();
+
+        List<RouteEdgeResponse> routeEdges = result.edges().stream()
+                .map(RouteEdgeResponse::from)
+                .toList();
+
+        ShortestRouteResponse response = ShortestRouteResponse.from(shortestRoute, fromHub, toHub, pathNodes, routeEdges);
 
         hubRouteCacheService.saveShortestRouteCache(response);
 
         return response;
     }
-
 }

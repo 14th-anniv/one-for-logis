@@ -6,7 +6,7 @@ import com.oneforlogis.common.exception.CustomException;
 import com.oneforlogis.common.exception.ErrorCode;
 import com.oneforlogis.hub.application.dto.HubEdge;
 import com.oneforlogis.hub.domain.model.HubRoute;
-import com.oneforlogis.hub.presentation.response.HubRouteResponse;
+import com.oneforlogis.hub.presentation.response.ShortestRouteResponse;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
@@ -84,7 +84,7 @@ public class HubRouteCacheService {
         String key = String.format(DIRECT_ROUTE_KEY + KEY_FORMAT, route.getFromHubId(), route.getToHubId());
         try {
             String json = objectMapper.writeValueAsString(route);
-            redisTemplate.opsForValue().set(key, json, Duration.ofDays(7));
+            redisTemplate.opsForValue().set(key, json);
         } catch (JsonProcessingException e) {
             throw new CustomException(ErrorCode.REDIS_SERIALIZATION_FAILED);
         }
@@ -108,14 +108,14 @@ public class HubRouteCacheService {
         }
     }
 
-    public HubRouteResponse getShortestRoute(UUID fromHubId, UUID toHubId) {
+    public ShortestRouteResponse getShortestRoute(UUID fromHubId, UUID toHubId) {
         String key = String.format(RELAY_ROUTE_KEY + KEY_FORMAT, fromHubId, toHubId);
         String json = redisTemplate.opsForValue().get(key);
 
         if (json == null) return null;
 
         try {
-            return objectMapper.readValue(json, HubRouteResponse.class);
+            return objectMapper.readValue(json, ShortestRouteResponse.class);
         } catch (JsonProcessingException e) {
             throw new CustomException(ErrorCode.REDIS_DESERIALIZATION_FAILED);
         }
@@ -135,7 +135,7 @@ public class HubRouteCacheService {
                     UUID toHubId = UUID.fromString(entry.getKey().toString());
                     try {
                         HubEdge edge = objectMapper.readValue(entry.getValue().toString(), HubEdge.class);
-                        return new HubEdge(toHubId, edge.routeDistance(), edge.routeTime());
+                        return new HubEdge(UUID.fromString(fromHubId), toHubId, edge.routeDistance(), edge.routeTime());
                     } catch (JsonProcessingException e) {
                         throw new CustomException(ErrorCode.REDIS_DESERIALIZATION_FAILED);
                     }
@@ -148,8 +148,8 @@ public class HubRouteCacheService {
         return graph;
     }
 
-    public void saveShortestRouteCache(HubRouteResponse response) {
-        String key = String.format(RELAY_ROUTE_KEY + KEY_FORMAT, response.fromHubId(), response.toHubId());
+    public void saveShortestRouteCache(ShortestRouteResponse response) {
+        String key = String.format(RELAY_ROUTE_KEY + KEY_FORMAT, response.fromHub().id(), response.toHub().id());
         try {
             String json = objectMapper.writeValueAsString(response);
             redisTemplate.opsForValue().set(key, json, Duration.ofDays(7));
@@ -172,9 +172,7 @@ public class HubRouteCacheService {
             );
             graphBatch.forEach((key, edges) ->
                     edges.forEach((field, value) ->
-                            connection.hashCommands().hSet(serializer.serialize(key),
-                                    serializer.serialize(field),
-                                    serializer.serialize(value))
+                            connection.hashCommands().hSet(serializer.serialize(key), serializer.serialize(field), serializer.serialize(value))
                     )
             );
             return null;

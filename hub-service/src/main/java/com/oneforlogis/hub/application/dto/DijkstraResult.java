@@ -7,5 +7,6 @@ import java.util.UUID;
 public record DijkstraResult(
         BigDecimal distance,
         Integer time,
-        List<UUID> pathNodes
+        List<UUID> pathNodes,
+        List<HubEdge> edges
 ) {}
