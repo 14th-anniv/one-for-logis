@@ -3,6 +3,7 @@ package com.oneforlogis.hub.infrastructure.persistence;
 import com.oneforlogis.hub.domain.model.HubRoute;
 import com.oneforlogis.hub.domain.model.RouteType;
 import com.oneforlogis.hub.domain.repository.HubRouteRepository;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -44,5 +45,10 @@ public class HubRouteRepositoryImpl implements HubRouteRepository {
     @Override
     public Page<HubRoute> findByDeletedFalse(Pageable pageable) {
         return jpaRepository.findByDeletedFalse(pageable);
+    }
+
+    @Override
+    public List<HubRoute> findByDeletedFalseAndRouteType(RouteType routeType) {
+        return jpaRepository.findByDeletedFalseAndRouteType(routeType);
     }
 }

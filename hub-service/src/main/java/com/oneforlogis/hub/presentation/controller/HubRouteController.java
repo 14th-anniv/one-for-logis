@@ -53,6 +53,14 @@ public class HubRouteController {
         return ApiResponse.success();
     }
 
+    @Operation(summary = "허브 경로 캐시 갱신", description = "모든 허브 직통/그래프/최단경로 캐시를 초기화하고 다시 로드합니다. 'MASTER' 권한이 필요합니다.")
+    @PreAuthorize("hasRole('MASTER')")
+    @PostMapping("/cache/refresh")
+    public ApiResponse<Void> refreshCache() {
+        hubRouteService.refreshRouteCache();
+        return ApiResponse.success();
+    }
+
     @Operation(summary = "허브 경로 id로 단일 조회", description = "routeId로 허브 경로를 조회합니다. (캐시 미사용)")
     @GetMapping("/{routeId}")
     public ApiResponse<HubRouteResponse> getHubRoute(@PathVariable Long routeId) {

@@ -76,6 +76,12 @@ public class HubRouteService {
         hubRouteCacheService.syncOnDelete(hubRoute);
     }
 
+    @Transactional
+    public void refreshRouteCache() {
+        List<HubRoute> directRoutes = hubRouteRepository.findByDeletedFalseAndRouteType(RouteType.DIRECT);
+        hubRouteCacheService.refreshRouteCaches(directRoutes);
+    }
+
     public HubRouteResponse getHubRouteById(Long routeId) {
         HubRoute route = hubRouteRepository.findById(routeId)
                 .orElseThrow(() -> new CustomException(ErrorCode.HUB_ROUTE_NOT_FOUND));
@@ -126,6 +132,7 @@ public class HubRouteService {
         return PageResponse.fromPage(responsePage);
     }
 
+    @Transactional
     public HubRouteResponse getShortestRoute(UUID fromHubId, UUID toHubId) {
         HubRouteResponse cached = hubRouteCacheService.getShortestRoute(fromHubId, toHubId);
         if (cached != null) return cached;
