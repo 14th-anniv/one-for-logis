@@ -1,12 +1,14 @@
 package com.oneforlogis.company.presentation.controller;
 
 import com.oneforlogis.common.api.ApiResponse;
+import com.oneforlogis.common.api.PageResponse;
 import com.oneforlogis.common.security.UserPrincipal;
 import com.oneforlogis.company.application.CompanyService;
 import com.oneforlogis.company.application.dto.request.CompanyCreateRequest;
 import com.oneforlogis.company.application.dto.request.CompanyUpdateRequest;
 import com.oneforlogis.company.application.dto.response.CompanyCreateResponse;
 import com.oneforlogis.company.application.dto.response.CompanyDetailResponse;
+import com.oneforlogis.company.application.dto.response.CompanySearchResponse;
 import com.oneforlogis.company.application.dto.response.CompanyUpdateResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,6 +16,7 @@ import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,6 +28,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name="Companies", description = "업체 관리 API")
@@ -79,12 +83,34 @@ public class CompanyController {
     }
 
     /**
-     * 업체 단건 조회 - ALL
+     * 업체 단건 조회
      */
     @GetMapping("/{companyId}")
     @Operation(summary = "업체 단건 조회", description = "업체 ID로 단일 업체 정보를 조회합니다.")
     public ResponseEntity<ApiResponse<CompanyDetailResponse>> getCompanyDetail(@PathVariable UUID companyId) {
         var response = companyService.getCompanyDetail(companyId);
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    /**
+     * 업체 검색 기반 조회 (전체 & 이름)
+     * @param companyName 업체 이름 ( null = 전체 조회 )
+     * @param page 페이지 번호 (0부터 시작)
+     * @param size 한 페이지에 가져올 개수 (유효 size: 10, 30, 50; 이외 값 입력시 10으로 고정)
+     * @param sortBy 정렬할 필드명 (ex. "createdAt")
+     * @param isAsc 정렬 방향 (true: 오름차순, false: 내림차순(default))
+     * @return 페이징된 DTO
+     */
+    @GetMapping
+    public ResponseEntity<ApiResponse<PageResponse<CompanySearchResponse>>> getCompanies(
+            @RequestParam(required = false) String companyName,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "false") boolean isAsc
+    ) {
+        Page<CompanySearchResponse> companyPage = companyService.getCompanies(companyName, page, size, sortBy, isAsc)
+                .map(CompanySearchResponse::from);
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.fromPage(companyPage)));
     }
 }
