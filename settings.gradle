@@ -7,4 +7,15 @@ pluginManagement {
 
 rootProject.name = 'one-for-logis'
 
-include 'common-lib', 'user-service', 'hub-service', 'order-service', 'gateway-service', 'eureka-server', 'company-service', 'notification-service', 'product-service'
+include(
+        "common-lib",
+        "company-service",
+        "delivery-service",
+        "eureka-server",
+        "gateway-service",
+        "hub-service",
+        "notification-service",
+        "order-service",
+        "product-service",
+        "user-service"
+)
