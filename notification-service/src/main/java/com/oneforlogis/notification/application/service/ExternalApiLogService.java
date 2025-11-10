@@ -92,4 +92,29 @@ public class ExternalApiLogService {
         // JSON을 Map으로 변환하여 반환
         return objectMapper.readValue(json, Map.class);
     }
+
+    /**
+     * 모든 외부 API 로그 조회
+     * - MASTER 권한만 조회 가능
+     */
+    @Transactional(readOnly = true)
+    public java.util.List<ExternalApiLog> getAllApiLogs() {
+        return apiLogRepository.findAll();
+    }
+
+    /**
+     * API 제공자별 로그 조회
+     */
+    @Transactional(readOnly = true)
+    public java.util.List<ExternalApiLog> getApiLogsByProvider(ApiProvider provider) {
+        return apiLogRepository.findByApiProvider(provider);
+    }
+
+    /**
+     * 메시지 ID로 로그 조회
+     */
+    @Transactional(readOnly = true)
+    public java.util.List<ExternalApiLog> getApiLogsByMessageId(UUID messageId) {
+        return apiLogRepository.findByMessageId(messageId);
+    }
 }
