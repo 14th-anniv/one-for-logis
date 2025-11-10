@@ -61,4 +61,31 @@ public class Product extends BaseEntity {
                 .build();
     }
 
+    /**
+     * 임시 예외 처리 (IllegalArgumentException 변경 예정)
+     */
+    public void updateName(String name) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("상품명은 비워둘 수 없습니다.");
+        }
+        this.name = name;
+    }
+
+    public void updateQuantity(Integer quantity) {
+        if (quantity == null || quantity < 0) {
+            throw new IllegalArgumentException("재고는 0 이상이어야 합니다.");
+        }
+        this.quantity = quantity;
+    }
+
+    public void updatePrice(BigDecimal price) {
+        if (price == null || price.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("단가는 0 이상이어야 합니다.");
+        }
+        this.price = price;
+    }
+
+    public void deleteProduct(String userName){
+        this.markAsDeleted(userName);
+    }
 }

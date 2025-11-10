@@ -1,17 +1,25 @@
 package com.oneforlogis.product.presentation.controller;
 
 import com.oneforlogis.common.api.ApiResponse;
+import com.oneforlogis.common.security.UserPrincipal;
 import com.oneforlogis.product.application.ProductService;
 import com.oneforlogis.product.application.dto.request.ProductCreateRequest;
+import com.oneforlogis.product.application.dto.request.ProductUpdateRequest;
 import com.oneforlogis.product.application.dto.response.ProductResponse;
+import com.oneforlogis.product.application.dto.response.ProductUpdateResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,6 +46,33 @@ public class ProductController {
 
         var response = productService.createProduct(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(response));
+    }
+
+    /**
+     * 상품 정보 수정
+     */
+    @Operation(summary = "상품 수정", description = "상품 정보를 수정합니다. 'MASTER, HUB_MANAGER(담당 허브), COMPANY_MANAGER(담당 업체)' 권한이 필요합니다.")
+    @PreAuthorize("hasRole('MASTER') or hasRole('HUB_MANAGER') or hasRole('COMPANY_MANAGER')")
+    @PatchMapping("/{productId}")
+    public ResponseEntity<ApiResponse<ProductUpdateResponse>> updateCompany(@PathVariable UUID productId,
+            @RequestBody @Valid ProductUpdateRequest request){
+
+        var response = productService.updateProduct(productId, request);
+        return ResponseEntity.ok().body(ApiResponse.success(response));
+    }
+
+    /**
+     * 상품 삭제
+     */
+    @Operation(summary = "상품 삭제", description = "상품을 삭제합니다. 'MASTER, HUB_MANAGER(담당 허브) 권한이 필요합니다.")
+    @PreAuthorize("hasRole('MASTER') or hasRole('HUB_MANAGER')")
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<ApiResponse<Void>> deleteProduct(@PathVariable UUID productId,
+            @AuthenticationPrincipal UserPrincipal userPrincipal){
+
+        String userName = userPrincipal.username();
+        productService.deleteProduct(productId, userName);
+        return ResponseEntity.ok().body(ApiResponse.noContent());
     }
 
 }
