@@ -3,10 +3,9 @@ package com.oneforlogis.hub.presentation.response;
 import com.oneforlogis.hub.domain.model.Hub;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Schema(description = "허브 생성 응답 DTO")
+@Schema(description = "허브 응답 DTO")
 public record HubResponse(
         @Schema(description = "허브 ID (UUID)", example = "550e8400-e29b-41d4-a716-446655440000")
         UUID id,

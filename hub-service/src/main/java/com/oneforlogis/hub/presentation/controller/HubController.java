@@ -4,8 +4,8 @@ import com.oneforlogis.common.api.ApiResponse;
 import com.oneforlogis.common.api.PageResponse;
 import com.oneforlogis.common.security.UserPrincipal;
 import com.oneforlogis.hub.application.service.HubService;
-import com.oneforlogis.hub.presentation.request.HubCreateRequest;
-import com.oneforlogis.hub.presentation.request.HubUpdateRequest;
+import com.oneforlogis.hub.presentation.request.HubRequest;
+import com.oneforlogis.hub.presentation.request.HubRequest;
 import com.oneforlogis.hub.presentation.response.HubResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,7 +26,7 @@ public class HubController {
     @Operation(summary = "신규 허브 생성", description = "새로운 물류 허브를 등록합니다. 'MASTER' 권한이 필요합니다.")
     @PreAuthorize("hasRole('MASTER')")
     @PostMapping
-    public ApiResponse<HubResponse> createHub(@RequestBody HubCreateRequest request) {
+    public ApiResponse<HubResponse> createHub(@RequestBody HubRequest request) {
         return ApiResponse.created(hubService.createHub(request));
     }
 
@@ -34,7 +34,7 @@ public class HubController {
     @PreAuthorize("hasRole('MASTER')")
     @PutMapping("/{hubId}")
     public ApiResponse<HubResponse> updateHub(@PathVariable UUID hubId,
-            @RequestBody HubUpdateRequest request) {
+            @RequestBody HubRequest request) {
         return ApiResponse.success(hubService.updateHub(hubId, request));
     }
 

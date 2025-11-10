@@ -1,0 +1,91 @@
+services:
+  eureka-server:
+    image: openjdk:17.0.1
+    container_name: eureka-server
+    working_dir: /app
+    volumes:
+      - ./eureka-server/build/libs:/app
+    command: ["java", "-jar", "/app/eureka-server-0.0.1-SNAPSHOT.jar"]
+    ports:
+      - "8761:8761"
+    env_file:
+      - .env.docker
+    networks:
+      - eureka-net
+
+  gateway:
+    image: openjdk:17.0.1
+    container_name: gateway
+    working_dir: /app
+    volumes:
+      - ./gateway-service/build/libs:/app
+    command: ["java", "-jar", "/app/gateway-service-0.0.1-SNAPSHOT.jar"]
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.docker
+    depends_on:
+      - eureka-server
+    networks:
+      - eureka-net
+      - service-net
+
+  hub-service:
+    image: openjdk:17.0.1
+    container_name: hub-service
+    working_dir: /app
+    volumes:
+      - ./hub-service/build/libs:/app
+    command: ["java", "-jar", "/app/hub-service-0.0.1-SNAPSHOT.jar"]
+    ports:
+      - "8200:8200"
+    depends_on:
+      - eureka-server
+      - postgres
+      - redis
+    env_file:
+      - .env.docker
+    networks:
+      - eureka-net
+      - service-net
+      - infra-net
+
+  postgres:
+    image: postgres:17
+    container_name: postgres-ofl
+    env_file:
+      - .env.docker
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/initdb:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - infra-net
+
+  redis:
+    image: redis:7
+    container_name: redis-ofl
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - infra-net
+
+networks:
+  eureka-net:
+  service-net:
+  infra-net:
+
+volumes:
+  postgres_data:
+  redis_data:
