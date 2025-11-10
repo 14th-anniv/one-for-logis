@@ -1,12 +1,16 @@
 package com.oneforlogis.order.application.service;
 
+import com.oneforlogis.common.exception.CustomException;
+import com.oneforlogis.common.exception.ErrorCode;
 import com.oneforlogis.order.domain.model.Order;
 import com.oneforlogis.order.domain.model.OrderItem;
 import com.oneforlogis.order.domain.repository.OrderRepository;
 import com.oneforlogis.order.presentation.request.OrderCreateRequest;
 import com.oneforlogis.order.presentation.response.OrderCreateResponse;
+import com.oneforlogis.order.presentation.response.OrderDetailResponse;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -49,6 +53,12 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
 
         return new OrderCreateResponse(savedOrder.getId());
+    }
+
+    public OrderDetailResponse getOrderById(UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+        return OrderDetailResponse.from(order);
     }
 }
 
