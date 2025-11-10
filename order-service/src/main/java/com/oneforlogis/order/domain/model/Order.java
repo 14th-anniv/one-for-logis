@@ -90,9 +90,59 @@ public class Order extends BaseEntity {
     }
 
     /**
+     * 주문 생성 정적 팩토리 메서드
+     */
+    public static Order create(Long userId, UUID supplierCompanyId, UUID receiverCompanyId,
+                               String requestNote, List<OrderItem> orderItems) {
+        if (userId == null) {
+            throw new IllegalArgumentException("사용자 ID는 필수입니다.");
+        }
+        if (supplierCompanyId == null) {
+            throw new IllegalArgumentException("공급업체 회사 ID는 필수입니다.");
+        }
+        if (receiverCompanyId == null) {
+            throw new IllegalArgumentException("수신업체 회사 ID는 필수입니다.");
+        }
+        if (orderItems == null || orderItems.isEmpty()) {
+            throw new IllegalArgumentException("주문 항목은 최소 1개 이상 필요합니다.");
+        }
+        
+        String orderNo = generateOrderNo();
+        Order order = Order.builder()
+                .orderNo(orderNo)
+                .userId(userId)
+                .supplierCompanyId(supplierCompanyId)
+                .receiverCompanyId(receiverCompanyId)
+                .status(OrderStatus.PENDING)
+                .requestNote(requestNote)
+                .orderItems(new ArrayList<>())
+                .statusHistories(new ArrayList<>())
+                .build();
+
+        // OrderItem 추가 및 자동 계산
+        for (OrderItem item : orderItems) {
+            order.addOrderItem(item);
+        }
+
+        // 초기 상태 이력 생성 (fromStatus는 null 대신 PENDING으로 설정)
+        // 실제로는 주문 생성 시점이므로 fromStatus와 toStatus가 동일
+        OrderStatusHistory initialHistory = OrderStatusHistory.builder()
+                .fromStatus(OrderStatus.PENDING)
+                .toStatus(OrderStatus.PENDING)
+                .reason("주문 접수")
+                .build();
+        order.addStatusHistory(initialHistory);
+
+        return order;
+    }
+
+    /**
      * OrderItem 추가 및 자동 계산
      */
     public void addOrderItem(OrderItem item) {
+        if (item == null) {
+            throw new IllegalArgumentException("주문 항목은 null일 수 없습니다.");
+        }
         this.orderItems.add(item);
         this.itemsCount = this.orderItems.size();
         this.totalAmount = this.orderItems.stream()
