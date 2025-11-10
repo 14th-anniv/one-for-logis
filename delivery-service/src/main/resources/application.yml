@@ -1,13 +1,12 @@
 server:
-  port: 8500
+  port: 8600
 
 spring:
   application:
-    name: product-service
-  config:
-    import: optional:file:.env[.properties]
+    name: delivery-service
+
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${PRODUCT_DB}
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${DELIVERY_DB}
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -20,6 +19,17 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: delivery-service
+      auto-offset-reset: latest
+      properties:
+        spring.json.trusted.packages: "com.oneforlogis.*"
+
+topics:
+  order-created: ${ORDER_CREATED_TOPIC:order.created}
 
 eureka:
   client:

@@ -1,3 +1,6 @@
+server:
+  port: ${NOTIFICATION_SERVICE_PORT:8700}
+
 spring:
   application:
     name: notification-service
@@ -32,9 +35,6 @@ spring:
     openfeign:
       circuitbreaker:
         enabled: true
-
-server:
-  port: ${NOTIFICATION_SERVICE_PORT:8700}
 
 management:
   endpoints:
