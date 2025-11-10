@@ -133,9 +133,47 @@ curl http://localhost:8761/eureka/apps/NOTIFICATION-SERVICE
 - API key validation (Slack Bot Token, Gemini API Key)
 - Test results: 35/35 passed (100% success rate)
 
+**Issue #14** - REST API 구현 (2025-11-07)
+- User FeignClient (user-service 통신)
+- NotificationController (7 endpoints)
+  - POST /order: 주문 알림 발송 (Internal API, No Auth)
+  - POST /manual: 수동 메시지 발송 (Auth Required)
+  - GET /{id}: 알림 단일 조회 (Auth Required)
+  - GET /: 알림 목록 조회 (MASTER Only, Pageable)
+  - GET /api-logs: 외부 API 로그 전체 조회 (MASTER Only, Pageable)
+  - GET /api-logs/provider/{provider}: Provider별 로그 조회 (MASTER Only, Pageable)
+  - GET /api-logs/message/{messageId}: 메시지별 로그 조회 (MASTER Only, Pageable)
+- NotificationService (비즈니스 로직)
+  - sendOrderNotification(): Gemini AI + Slack 통합
+  - sendManualNotification(): 사용자 정보 스냅샷 패턴
+  - Gemini AI 프롬프트 최적화 (200자 이내 근거, 간소화된 예시)
+- ExternalApiLogService (API 로그 관리)
+- Request/Response DTOs (record 패턴)
+- SecurityConfig (common-lib 통합, @EnableMethodSecurity)
+- Unit tests: NotificationControllerTest (8 tests)
+- Docker cURL tests: test-notification-api.sh (8 tests)
+- Test results: 44/44 passed (100% success rate)
+- Slack 실제 채널 메시지 발송 성공 (C09QY22AMEE)
+
+**Issue #16** - 조회 및 통계 API (2025-11-10)
+- 알림 필터링 조회 API (GET /search)
+  - 다중 조건 필터링 (senderUsername, recipientSlackId, messageType, status)
+  - 팀 표준 페이징 패턴 (size 검증, sortBy 화이트리스트, boolean isAsc)
+- API 통계 조회 API (GET /api-logs/stats)
+  - Provider별 통계 집계 (SLACK, GEMINI, NAVER_MAPS)
+  - Stream API 활용 (성공률, 평균/최소/최대 응답시간, 총 비용)
+- ApiStatisticsResponse DTO (record, 정적 팩토리 메서드)
+- createPageable() 헬퍼 메서드
+  - Size 검증 (10, 30, 50만 허용)
+  - Page 음수 보정
+  - SortBy 화이트리스트 (SQL Injection 방지)
+- Repository 페이징 메서드 추가 (ExternalApiLogRepository)
+- Unit tests: 기존 4개 수정 + 신규 3개 추가 (총 10개)
+- Docker cURL tests: 기존 8개 수정 + 신규 2개 추가 (총 10개)
+- Test results: 10/10 passed (100% success rate)
+
 ### 🚧 Pending
 
-- **Issue #14**: 주문 알림 REST API (Gemini AI 프롬프트, Slack 템플릿)
-- **Issue #16**: 조회 및 통계 API (MASTER 권한)
 - **Issue #35**: Kafka 이벤트 소비자 (order-created, delivery-status-changed)
 - **Issue #36**: Daily route optimization scheduler (Challenge)
+- **DTO Refactoring**: presentation → application 계층 이동 (튜터 권장사항)
