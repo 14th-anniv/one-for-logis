@@ -7,14 +7,15 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+@Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Entity
 @Table(name = "p_deliveries", uniqueConstraints = {
         @UniqueConstraint(name = "uk_delivery_order", columnNames = {"order_id"})
 })
@@ -34,6 +35,18 @@ public class Delivery {
     @Column(name = "start_hub_id", nullable = false, length = 64)
     private String startHubId;
 
+    @Column(name = "estimated_distance_km")
+    private Double estimatedDistanceKm;
+
+    @Column(name = "estimated_duration_min")
+    private Integer estimatedDurationMin;
+
+    @Column(name = "arrived_destination_hub")
+    private Boolean arrivedDestinationHub;
+
+    @Column(name = "destination_hub_arrived_at")
+    private LocalDateTime destinationHubArrivedAt;
+
     @Column(name = "destination_hub_id", nullable = false, length = 64)
     private String destinationHubId;
 
@@ -49,9 +62,17 @@ public class Delivery {
     @Column(name = "delivery_staff_id", length = 64)
     private String deliveryStaffId;
 
-    private Delivery(UUID deliveryId, UUID orderId, DeliveryStatus status,
-            String startHubId, String destinationHubId,
-            String receiverName, String receiverAddress, String receiverSlackId) {
+    private Delivery(
+            UUID deliveryId,
+            UUID orderId,
+            DeliveryStatus status,
+            String startHubId,
+            String destinationHubId,
+            String receiverName,
+            String receiverAddress,
+            String receiverSlackId,
+            String deliveryStaffId
+    ) {
         this.deliveryId = deliveryId;
         this.orderId = orderId;
         this.status = status;
@@ -60,14 +81,22 @@ public class Delivery {
         this.receiverName = receiverName;
         this.receiverAddress = receiverAddress;
         this.receiverSlackId = receiverSlackId;
+        this.deliveryStaffId = deliveryStaffId;
+
+        this.estimatedDistanceKm = 0.0;
+        this.estimatedDurationMin = 0;
+        this.arrivedDestinationHub = false;
+        this.destinationHubArrivedAt = null;
     }
 
-    public static Delivery createFromOrder(UUID orderId,
+    public static Delivery createFromOrder(
+            UUID orderId,
             String startHubId,
             String destinationHubId,
             String receiverName,
             String receiverAddress,
-            String receiverSlackId) {
+            String receiverSlackId
+    ) {
         return new Delivery(
                 UUID.randomUUID(),
                 orderId,
@@ -76,7 +105,8 @@ public class Delivery {
                 destinationHubId,
                 receiverName,
                 receiverAddress,
-                receiverSlackId
+                receiverSlackId,
+                null
         );
     }
 }
