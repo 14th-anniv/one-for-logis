@@ -5,13 +5,19 @@ import com.oneforlogis.common.exception.ErrorCode;
 import com.oneforlogis.company.application.dto.request.CompanyCreateRequest;
 import com.oneforlogis.company.application.dto.request.CompanyUpdateRequest;
 import com.oneforlogis.company.application.dto.response.CompanyCreateResponse;
+import com.oneforlogis.company.application.dto.response.CompanyDetailResponse;
 import com.oneforlogis.company.application.dto.response.CompanyUpdateResponse;
 import com.oneforlogis.company.domain.model.Company;
 import com.oneforlogis.company.domain.model.CompanyType;
 import com.oneforlogis.company.domain.repository.CompanyRepository;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,6 +73,25 @@ public class CompanyService {
         company.deleteCompany(userName);
     }
 
+    // 업체 단건 조회
+    public CompanyDetailResponse getCompanyDetail(UUID companyId){
+        Company company = getCompanyById(companyId);
+        return CompanyDetailResponse.from(company);
+    }
+
+    // 업체 조회 (전체 + 이름 search)
+    public Page<Company> getCompanies(String companyName, int page, int size, String sortBy, boolean isAsc) {
+        Pageable pageable = createPageable(page, size, sortBy, isAsc);
+
+        if (companyName == null || companyName.isBlank()) {
+            return companyRepository.findByDeletedFalse(pageable);
+        }
+        return companyRepository.findByNameContainingAndDeletedFalse(companyName, pageable);
+    }
+
+
+    /**
+     * 코드 헬퍼 메서드
 
 
     /**
@@ -77,5 +102,13 @@ public class CompanyService {
     public Company getCompanyById(UUID companyId){
         return companyRepository.findByIdAndDeletedFalse(companyId)
                 .orElseThrow(() -> new CustomException(ErrorCode.COMPANY_NOT_FOUND));
+    }
+
+    // 페이징 헬퍼
+    private Pageable createPageable(int page, int size, String sortBy, boolean isAsc) {
+        int validatedSize = List.of(10, 30, 50).contains(size) ? size : 10;
+        int validatedPage = Math.max(page, 0); // 무조건 0부터 유효 (음수 방지 코드)
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        return PageRequest.of(validatedPage, validatedSize, Sort.by(direction, sortBy));
     }
 }

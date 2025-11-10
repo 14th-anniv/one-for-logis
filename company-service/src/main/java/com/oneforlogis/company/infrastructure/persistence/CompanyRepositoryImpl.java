@@ -5,6 +5,8 @@ import com.oneforlogis.company.domain.repository.CompanyRepository;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @RequiredArgsConstructor
@@ -21,5 +23,15 @@ public class CompanyRepositoryImpl implements CompanyRepository {
     @Override
     public Optional<Company> findByIdAndDeletedFalse(UUID id){
         return companyJpaRepository.findByIdAndDeletedFalse(id);
+    }
+
+    @Override
+    public Page<Company> findByDeletedFalse(Pageable pageable) {
+        return companyJpaRepository.findByDeletedFalse(pageable);
+    }
+
+    @Override
+    public Page<Company> findByNameContainingAndDeletedFalse(String keyword, Pageable pageable) {
+        return companyJpaRepository.findByNameContainingAndDeletedFalse(keyword, pageable);
     }
 }
