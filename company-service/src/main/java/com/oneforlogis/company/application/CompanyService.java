@@ -92,10 +92,6 @@ public class CompanyService {
 
     /**
      * 코드 헬퍼 메서드
-
-
-    /**
-     * 중복되는 코드 헬퍼 메서드
      */
 
     // 업체 엔티티 조회
