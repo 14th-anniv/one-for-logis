@@ -13,6 +13,7 @@ public enum ErrorCode {
     BAD_REQUEST(HttpStatus.BAD_REQUEST, "요청 형식이 올바르지 않습니다."),
     NOT_FOUND(HttpStatus.NOT_FOUND, "요청하신 경로를 찾을 수 없습니다."),
     NOT_RESOURCE_OWNER(HttpStatus.FORBIDDEN, "해당 리소스 소유자가 아닙니다."),
+    JSON_SERIALIZATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "JSON 직렬화 중 오류가 발생했습니다."),
 
     // Valid
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "Validation Error"),
@@ -29,6 +30,12 @@ public enum ErrorCode {
     // Hub
     HUB_NOT_FOUND(HttpStatus.NOT_FOUND, "허브를 찾을 수 없습니다."),
     HUB_DELETED(HttpStatus.BAD_REQUEST, "삭제된 허브입니다."),
+    HUB_ROUTE_NOT_FOUND(HttpStatus.NOT_FOUND, "허브 경로를 찾을 수 없습니다."),
+    HUB_ROUTE_DELETED(HttpStatus.BAD_REQUEST, "삭제된 허브경로입니다."),
+    HUB_ROUTE_NOT_DIRECT(HttpStatus.BAD_REQUEST, "직통 경로가 아닙니다."),
+    HUB_INVALID_REQUEST(HttpStatus.BAD_REQUEST, "조회할 허브 정보가 없습니다."),
+    HUB_ROUTE_PATH_NOT_FOUND(HttpStatus.NOT_FOUND, "허브 간 최단 경로를 찾을 수 없습니다."),
+    HUB_GRAPH_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "허브 그래프 데이터를 불러올 수 없습니다."),
 
     // Company
     COMPANY_INVALID_TYPE(HttpStatus.BAD_REQUEST,"유효하지 않은 업체 타입입니다."),
@@ -42,7 +49,12 @@ public enum ErrorCode {
     // Delivery
 
     // Notification
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다."),
+    NOTIFICATION_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "알림 발송에 실패했습니다.")
 
+    // Redis
+    REDIS_SERIALIZATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Redis 직렬화 중 오류가 발생했습니다."),
+    REDIS_DESERIALIZATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Redis 역직렬화 중 오류가 발생했습니다."),
     ;
 
     private final HttpStatus httpStatus;

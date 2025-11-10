@@ -1,8 +1,7 @@
 package com.oneforlogis.hub.domain.model;
 
 import com.oneforlogis.common.model.BaseEntity;
-import com.oneforlogis.hub.presentation.request.HubCreateRequest;
-import com.oneforlogis.hub.presentation.request.HubUpdateRequest;
+import com.oneforlogis.hub.presentation.request.HubRequest;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -44,7 +43,7 @@ public class Hub extends BaseEntity {
         this.lon = lon;
     }
 
-    public static Hub create(HubCreateRequest request) {
+    public static Hub create(HubRequest request) {
         return Hub.builder()
                 .name(request.name())
                 .address(request.address())
@@ -53,7 +52,7 @@ public class Hub extends BaseEntity {
                 .build();
     }
 
-    public void update(HubUpdateRequest request) {
+    public void update(HubRequest request) {
         this.name = request.name();
         this.address = request.address();
         this.lat = request.lat();
