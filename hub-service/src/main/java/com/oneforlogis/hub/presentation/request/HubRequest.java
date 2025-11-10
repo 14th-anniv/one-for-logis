@@ -3,7 +3,7 @@ package com.oneforlogis.hub.presentation.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 
-public record HubCreateRequest(
+public record HubRequest(
         @Schema(description = "허브명 (예: 서울허브, 대전허브 등)", example = "서울허브")
         String name,
 
