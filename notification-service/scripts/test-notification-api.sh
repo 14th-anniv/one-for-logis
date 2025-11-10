@@ -3,8 +3,12 @@
 # ============================================
 # Notification Service API Test Script (cURL)
 # ============================================
-# Issue #14: notification-service REST API 검증
+# Issue #14: notification-service REST API 검증 (7 endpoints)
+# Issue #16: Query & Statistics API 검증 (2 new endpoints)
 # 실행: bash notification-service/scripts/test-notification-api.sh
+# 총 테스트: 9개 (주문 알림, 수동 메시지, 단일 조회, 목록 조회,
+#                   API 로그 조회, Provider별 조회, 메시지별 조회,
+#                   필터링 조회, 통계 조회)
 
 BASE_URL="http://localhost:8700/api/v1/notifications"
 GATEWAY_URL="http://localhost:8000/api/v1/notifications"
@@ -184,7 +188,7 @@ run_test \
 run_test \
     "알림 목록 조회 - 권한 없음 (GET /?page=0&size=10)" \
     "GET" \
-    "$BASE_URL?page=0&size=10&sortBy=createdAt&direction=DESC" \
+    "$BASE_URL?page=0&size=10&sortBy=createdAt&isAsc=false" \
     "" \
     "" \
     "403"
@@ -219,6 +223,28 @@ run_test \
     "외부 API 로그 메시지별 조회 - 권한 없음 (GET /api-logs/message/{id})" \
     "GET" \
     "$BASE_URL/api-logs/message/$MESSAGE_ID" \
+    "" \
+    "" \
+    "403"
+
+# ============================================
+# Test 8: 알림 필터링 조회 (MASTER Only) - NEW (Issue #16)
+# ============================================
+run_test \
+    "알림 필터링 조회 - 권한 없음 (GET /search)" \
+    "GET" \
+    "$BASE_URL/search?messageType=ORDER_NOTIFICATION&status=SENT&page=0&size=10&sortBy=createdAt&isAsc=false" \
+    "" \
+    "" \
+    "403"
+
+# ============================================
+# Test 9: API 통계 조회 (MASTER Only) - NEW (Issue #16)
+# ============================================
+run_test \
+    "API 통계 조회 - 권한 없음 (GET /api-logs/stats)" \
+    "GET" \
+    "$BASE_URL/api-logs/stats" \
     "" \
     "" \
     "403"
