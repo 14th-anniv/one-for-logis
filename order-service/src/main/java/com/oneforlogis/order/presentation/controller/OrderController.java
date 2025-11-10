@@ -1,10 +1,12 @@
 package com.oneforlogis.order.presentation.controller;
 
 import com.oneforlogis.common.api.ApiResponse;
+import com.oneforlogis.common.api.PageResponse;
 import com.oneforlogis.order.application.service.OrderService;
 import com.oneforlogis.order.presentation.request.OrderCreateRequest;
 import com.oneforlogis.order.presentation.response.OrderCreateResponse;
 import com.oneforlogis.order.presentation.response.OrderDetailResponse;
+import com.oneforlogis.order.presentation.response.OrderSummaryResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Orders", description = "주문 관리 API")
@@ -40,6 +43,26 @@ public class OrderController {
     @GetMapping("/{orderId}")
     public ApiResponse<OrderDetailResponse> getOrderById(@PathVariable UUID orderId) {
         OrderDetailResponse response = orderService.getOrderById(orderId);
+        return ApiResponse.success(response);
+    }
+
+    @Operation(summary = "주문 목록 조회", description = "필터링 및 페이지네이션을 지원하는 주문 목록을 조회합니다. 기본 정렬은 createdAt DESC입니다.")
+    // TODO: 추후 Security/JWT 스펙 확정되면 활성화
+    // @PreAuthorize("hasAnyRole('MASTER','SUPPLIER_MANAGER','HUB_MANAGER')")
+    @GetMapping
+    public ApiResponse<PageResponse<OrderSummaryResponse>> getOrders(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String supplierId,
+            @RequestParam(required = false) String receiverId,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false, defaultValue = "createdAt,DESC") String sort
+    ) {
+        PageResponse<OrderSummaryResponse> response = orderService.getOrders(
+                status, supplierId, receiverId, startDate, endDate, page, size, sort
+        );
         return ApiResponse.success(response);
     }
 }
