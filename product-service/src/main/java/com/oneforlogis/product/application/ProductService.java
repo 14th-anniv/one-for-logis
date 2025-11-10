@@ -4,13 +4,19 @@ import com.oneforlogis.common.exception.CustomException;
 import com.oneforlogis.common.exception.ErrorCode;
 import com.oneforlogis.product.application.dto.request.ProductCreateRequest;
 import com.oneforlogis.product.application.dto.request.ProductUpdateRequest;
+import com.oneforlogis.product.application.dto.response.ProductDetailResponse;
 import com.oneforlogis.product.application.dto.response.ProductResponse;
 import com.oneforlogis.product.application.dto.response.ProductUpdateResponse;
 import com.oneforlogis.product.domain.model.Product;
 import com.oneforlogis.product.domain.repository.ProductRepository;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,10 +68,33 @@ public class ProductService {
         product.deleteProduct(userName);
     }
 
+    // 상품 단건 조회
+    public ProductDetailResponse getProductDetail(UUID productId){
+        Product product = getProductById(productId);
+        return ProductDetailResponse.from(product);
+    }
+
+    // 상품 조회 (전체 + 이름 search)
+    public Page<Product> getProducts(String productName, int page, int size, String sortBy, boolean isAsc) {
+        Pageable pageable = createPageable(page, size, sortBy, isAsc);
+
+        if (productName == null || productName.isBlank()) {
+            return productRepository.findByDeletedFalse(pageable);
+        }
+        return productRepository.findByNameContainingAndDeletedFalse(productName, pageable);
+    }
+
 
 
     public Product getProductById(UUID productId){
         return productRepository.findByIdAndDeletedFalse(productId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
+    }
+
+    private Pageable createPageable(int page, int size, String sortBy, boolean isAsc) {
+        int validatedSize = List.of(10, 30, 50).contains(size) ? size : 10;
+        int validatedPage = Math.max(page, 0); // 무조건 0부터 유효 (음수 방지 코드)
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        return PageRequest.of(validatedPage, validatedSize, Sort.by(direction, sortBy));
     }
 }
