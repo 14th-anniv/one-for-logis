@@ -1,7 +1,6 @@
 package com.oneforlogis.company.domain.model;
 
 import com.oneforlogis.common.model.BaseEntity;
-import com.oneforlogis.company.presentation.dto.request.CompanyCreateRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -49,15 +48,38 @@ public class Company extends BaseEntity {
         this.address = address;
     }
 
+
     /**
      * 비즈니스 로직
      */
-    public static Company createCompany(CompanyCreateRequest request){
+
+    public static Company createCompany(
+            String name, CompanyType type, UUID hubId, String address){
         return Company.builder()
-                .name(request.name())
-                .type(CompanyType.from(request.type()))
-                .hubId(request.hubId())
-                .address(request.address())
+                .name(name)
+                .type(type)
+                .hubId(hubId)
+                .address(address)
                 .build();
+    }
+
+    /**
+     * 업데이트 필드 - 업체명, 타입, 주소
+     */
+    public void updateName(String name) {
+        this.name = name;
+    }
+    public void updateType(CompanyType type) {
+        this.type = type;
+    }
+    public void updateAddress(String address) {
+        this.address = address;
+    }
+
+    /**
+     * soft del
+     */
+    public void deleteCompany(String userName) {
+        this.markAsDeleted(userName);
     }
 }
