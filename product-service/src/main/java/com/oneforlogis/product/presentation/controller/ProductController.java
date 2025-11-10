@@ -6,8 +6,8 @@ import com.oneforlogis.common.security.UserPrincipal;
 import com.oneforlogis.product.application.ProductService;
 import com.oneforlogis.product.application.dto.request.ProductCreateRequest;
 import com.oneforlogis.product.application.dto.request.ProductUpdateRequest;
-import com.oneforlogis.product.application.dto.response.ProductDetailResponse;
 import com.oneforlogis.product.application.dto.response.ProductCreateResponse;
+import com.oneforlogis.product.application.dto.response.ProductDetailResponse;
 import com.oneforlogis.product.application.dto.response.ProductSearchResponse;
 import com.oneforlogis.product.application.dto.response.ProductUpdateResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -84,7 +84,7 @@ public class ProductController {
     /**
      * 상품 단건 조회
      */
-    @Operation(summary = "상품 단건 조회", description = "업체 ID로 단일 업체 정보를 조회합니다.")
+    @Operation(summary = "상품 단건 조회", description = "상품 ID로 단일 상품 정보를 조회합니다.")
     @GetMapping("/{productId}")
     public ResponseEntity<ApiResponse<ProductDetailResponse>> getProductDetail(@PathVariable UUID productId) {
         var response = productService.getProductDetail(productId);
