@@ -3,10 +3,11 @@ package com.oneforlogis.product.application.dto.response;
 import com.oneforlogis.product.domain.model.Product;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Schema(description = "상품 검색 조회 응답 DTO")
-public record ProductSearchResponse(
+@Schema(description = "상품 생성 응답 DTO")
+public record ProductCreateResponse(
 
         @Schema(description = "상품 ID", example = "42b1c3b0-0b1a-4b1a-9b1a-0b1a4b1a0b1a")
         UUID id,
@@ -24,17 +25,25 @@ public record ProductSearchResponse(
         UUID hubId,
 
         @Schema(description = "업체 ID", example = "11a1c3b0-2b1a-4b1a-9b1a-0b1a4b1a0b1a")
-        UUID companyId
+        UUID companyId,
+
+        @Schema(description = "생성자", example = "admin")
+        String createdBy,
+
+        @Schema(description = "생성일시", example = "2025-11-10T12:00:00")
+        LocalDateTime createdAt
 ) {
 
-    public static ProductSearchResponse from(Product product) {
-        return new ProductSearchResponse(
+    public static ProductCreateResponse from(Product product){
+        return new ProductCreateResponse(
                 product.getId(),
                 product.getName(),
                 product.getQuantity(),
                 product.getPrice(),
                 product.getHubId(),
-                product.getCompanyId()
+                product.getCompanyId(),
+                product.getCreatedBy(),
+                product.getCreatedAt()
         );
     }
 }

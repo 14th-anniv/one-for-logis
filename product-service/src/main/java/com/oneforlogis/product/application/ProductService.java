@@ -5,7 +5,7 @@ import com.oneforlogis.common.exception.ErrorCode;
 import com.oneforlogis.product.application.dto.request.ProductCreateRequest;
 import com.oneforlogis.product.application.dto.request.ProductUpdateRequest;
 import com.oneforlogis.product.application.dto.response.ProductDetailResponse;
-import com.oneforlogis.product.application.dto.response.ProductResponse;
+import com.oneforlogis.product.application.dto.response.ProductCreateResponse;
 import com.oneforlogis.product.application.dto.response.ProductUpdateResponse;
 import com.oneforlogis.product.domain.model.Product;
 import com.oneforlogis.product.domain.repository.ProductRepository;
@@ -30,7 +30,7 @@ public class ProductService {
 
     // 상품 생성
     @Transactional
-    public ProductResponse createProduct(ProductCreateRequest request){
+    public ProductCreateResponse createProduct(ProductCreateRequest request){
 
         Product product = Product.createProduct(
                 request.name(),
@@ -41,7 +41,7 @@ public class ProductService {
         );
 
         Product savedProduct = productRepository.save(product);
-        return ProductResponse.from(savedProduct);
+        return ProductCreateResponse.from(savedProduct);
     }
 
     // 상품 수정

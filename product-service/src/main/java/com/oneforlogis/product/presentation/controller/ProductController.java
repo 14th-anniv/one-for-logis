@@ -7,7 +7,7 @@ import com.oneforlogis.product.application.ProductService;
 import com.oneforlogis.product.application.dto.request.ProductCreateRequest;
 import com.oneforlogis.product.application.dto.request.ProductUpdateRequest;
 import com.oneforlogis.product.application.dto.response.ProductDetailResponse;
-import com.oneforlogis.product.application.dto.response.ProductResponse;
+import com.oneforlogis.product.application.dto.response.ProductCreateResponse;
 import com.oneforlogis.product.application.dto.response.ProductSearchResponse;
 import com.oneforlogis.product.application.dto.response.ProductUpdateResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -48,7 +48,7 @@ public class ProductController {
     @Operation(summary = "상품 등록", description = "새로운 상품을 등록합니다. 'MASTER, HUB_MANAGER(담당 허브), COMPANY_MANGER(담당 업체)' 권한이 필요합니다.")
     @PreAuthorize("hasRole('MASTER') or hasRole('HUB_MANAGER') or hasRole('COMPANY_MANAGER')")
     @PostMapping
-    public ResponseEntity<ApiResponse<ProductResponse>> createProduct(@RequestBody @Valid ProductCreateRequest request){
+    public ResponseEntity<ApiResponse<ProductCreateResponse>> createProduct(@RequestBody @Valid ProductCreateRequest request){
 
         var response = productService.createProduct(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(response));
