@@ -5,6 +5,8 @@ import com.oneforlogis.notification.domain.model.MessageType;
 import com.oneforlogis.notification.domain.model.Notification;
 import com.oneforlogis.notification.domain.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -32,6 +34,11 @@ public class NotificationRepositoryImpl implements NotificationRepository {
     @Override
     public List<Notification> findAll() {
         return jpaRepository.findAll();
+    }
+
+    @Override
+    public Page<Notification> findAll(Pageable pageable) {
+        return jpaRepository.findAll(pageable);
     }
 
     @Override

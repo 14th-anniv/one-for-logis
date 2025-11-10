@@ -50,4 +50,9 @@ public class HubRepositoryImpl implements HubRepository {
     public Page<Hub> findByDeletedFalse(Pageable pageable) {
         return jpaRepository.findByDeletedFalse(pageable);
     }
+
+    @Override
+    public List<Hub> findAllByIdInAndDeletedFalse(List<UUID> missingIds) {
+        return jpaRepository.findAllByIdInAndDeletedFalse(missingIds);
+    }
 }
