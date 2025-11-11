@@ -13,12 +13,14 @@ import com.oneforlogis.order.presentation.request.OrderUpdateRequest;
 import com.oneforlogis.order.presentation.response.OrderCreateResponse;
 import com.oneforlogis.order.presentation.response.OrderDetailResponse;
 import com.oneforlogis.order.presentation.response.OrderStatusChangeResponse;
+import com.oneforlogis.order.presentation.response.OrderStatusHistoryResponse;
 import com.oneforlogis.order.presentation.response.OrderSummaryResponse;
 import com.oneforlogis.order.presentation.response.OrderUpdateResponse;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -330,6 +332,24 @@ public class OrderService {
 
         // 응답 생성
         return new OrderUpdateResponse(savedOrder.getId());
+    }
+
+    public List<OrderStatusHistoryResponse> getStatusHistory(UUID orderId) {
+        // 주문 조회 (존재하지 않으면 404)
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+
+        // 상태 변경 이력 리스트 가져오기
+        List<com.oneforlogis.order.domain.model.OrderStatusHistory> histories = order.getStatusHistories();
+
+        // changedAt(createdAt) 기준 DESC 정렬
+        return histories.stream()
+                .sorted(Comparator.comparing(
+                        com.oneforlogis.order.domain.model.OrderStatusHistory::getCreatedAt,
+                        Comparator.reverseOrder()
+                ))
+                .map(OrderStatusHistoryResponse::from)
+                .collect(Collectors.toList());
     }
 }
 

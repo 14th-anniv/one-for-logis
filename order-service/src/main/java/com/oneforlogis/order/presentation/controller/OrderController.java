@@ -9,11 +9,13 @@ import com.oneforlogis.order.presentation.request.OrderUpdateRequest;
 import com.oneforlogis.order.presentation.response.OrderCreateResponse;
 import com.oneforlogis.order.presentation.response.OrderDetailResponse;
 import com.oneforlogis.order.presentation.response.OrderStatusChangeResponse;
+import com.oneforlogis.order.presentation.response.OrderStatusHistoryResponse;
 import com.oneforlogis.order.presentation.response.OrderSummaryResponse;
 import com.oneforlogis.order.presentation.response.OrderUpdateResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -98,6 +100,20 @@ public class OrderController {
             @Valid @RequestBody OrderUpdateRequest request
     ) {
         OrderUpdateResponse response = orderService.updateOrder(orderId, request);
+        return ApiResponse.success(response);
+    }
+
+    @Operation(
+            summary = "주문 상태 변경 이력 조회",
+            description = "주문의 상태 변경 이력을 조회합니다. 기본 정렬은 changedAt DESC입니다."
+    )
+    // TODO: 추후 Security/JWT 스펙 확정되면 활성화
+    // @PreAuthorize("hasAnyRole('MASTER','SUPPLIER_MANAGER','HUB_MANAGER')")
+    @GetMapping("/{orderId}/status-history")
+    public ApiResponse<List<OrderStatusHistoryResponse>> getStatusHistory(
+            @PathVariable UUID orderId
+    ) {
+        List<OrderStatusHistoryResponse> response = orderService.getStatusHistory(orderId);
         return ApiResponse.success(response);
     }
 }
