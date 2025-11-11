@@ -9,6 +9,7 @@ import com.oneforlogis.common.api.ApiResponse;
 import com.oneforlogis.user.application.service.UserService;
 import com.oneforlogis.user.global.util.JwtUtil;
 import com.oneforlogis.user.presentation.request.UserLoginRequest;
+import com.oneforlogis.user.presentation.request.UserSignupRequest;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,6 +26,15 @@ public class UserController {
 
 	private final UserService userService;
 	private final JwtUtil jwtUtil;
+
+	@Operation(summary = "회원가입", description = "회원가입을 진행합니다.")
+	@PostMapping("/signup")
+	public ApiResponse<Void> signup(@Valid @RequestBody UserSignupRequest request) {
+
+		userService.signup(request);
+
+		return ApiResponse.success("회원가입에 성공했습니다!");
+	}
 
 	@Operation(summary = "로그인", description = "로그인을 진행합니다.")
 	@PostMapping("/login")

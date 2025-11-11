@@ -10,11 +10,13 @@ import org.springframework.util.StringUtils;
 
 import com.oneforlogis.common.exception.CustomException;
 import com.oneforlogis.common.exception.ErrorCode;
+import com.oneforlogis.common.model.Role;
 import com.oneforlogis.user.domain.model.User;
 import com.oneforlogis.user.domain.repository.UserRepository;
 import com.oneforlogis.user.global.util.JwtUtil;
 import com.oneforlogis.user.infrastructure.config.RedisService;
 import com.oneforlogis.user.presentation.request.UserLoginRequest;
+import com.oneforlogis.user.presentation.request.UserSignupRequest;
 
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
@@ -36,6 +38,46 @@ public class UserService {
 
 	@Value("${jwt.admin.token}")
 	private String ADMIN_TOKEN;
+
+	// 회원가입
+	public void signup(UserSignupRequest request) {
+
+		// 중복 검사
+		if (userRepository.existsByName((request.name()))) {
+			throw new CustomException(ErrorCode.DUPLICATE_USERNAME);
+		}
+
+		if (userRepository.existsByEmail((request.email()))) {
+			throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
+		}
+
+		if (userRepository.countBySlackId(request.slack_id()) > 0) {
+			throw new CustomException(ErrorCode.DUPLICATE_SLACK_ID);
+		}
+
+		// 비밀번호 암호화
+		String rawPassword = request.password();
+		String encodedPassword = passwordEncoder.encode(rawPassword);
+
+		Role role = request.role();
+
+		if (role == null || request.roleAuthKey() == null) {
+			// PENDING인 사용자 회원가입
+			User user = User.createUser(request, encodedPassword);
+			userRepository.save(user);
+			return;
+		}
+
+		// 관리자 회원가입: 권한검사(MASTER 권한 & 인증키 필요), 나머지는 전부 PENDING(승인 대기 상태)
+		if (role == Role.MASTER) {
+			if (ADMIN_TOKEN.equals(request.roleAuthKey())) {
+				User user = User.createAdmin(request, encodedPassword);
+				userRepository.save(user);
+			}
+		} else {
+			throw new CustomException(ErrorCode.INVALID_TOKEN);
+		}
+	}
 
 
 	// 로그인
