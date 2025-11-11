@@ -12,6 +12,7 @@ import com.oneforlogis.notification.infrastructure.client.user.UserResponse;
 import com.oneforlogis.notification.infrastructure.client.user.UserServiceClient;
 import com.oneforlogis.notification.presentation.request.ManualNotificationRequest;
 import com.oneforlogis.notification.presentation.request.OrderNotificationRequest;
+import com.oneforlogis.notification.presentation.response.ApiStatisticsResponse;
 import com.oneforlogis.notification.presentation.response.ExternalApiLogResponse;
 import com.oneforlogis.notification.presentation.response.NotificationResponse;
 import org.junit.jupiter.api.DisplayName;
@@ -188,7 +189,7 @@ class NotificationControllerTest {
         );
         Page<NotificationResponse> page = new PageImpl<>(content, PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt")), 2);
 
-        when(notificationService.getNotifications(any(Pageable.class)))
+        when(notificationService.getNotifications(anyInt(), anyInt(), anyString(), anyBoolean()))
                 .thenReturn(page);
 
         // When & Then
@@ -196,7 +197,7 @@ class NotificationControllerTest {
                         .param("page", "0")
                         .param("size", "10")
                         .param("sortBy", "createdAt")
-                        .param("direction", "DESC")
+                        .param("isAsc", "false")
                         .with(authentication(createAuthentication("admin", Role.MASTER))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content").isArray())
@@ -211,40 +212,50 @@ class NotificationControllerTest {
     @DisplayName("외부 API 로그 조회 - 전체 (200 OK)")
     void getApiLogs_Success() throws Exception {
         // Given
-        List<ExternalApiLog> logs = Arrays.asList(
-                createMockApiLog(ApiProvider.SLACK, true),
-                createMockApiLog(ApiProvider.GEMINI, true)
+        List<ExternalApiLogResponse> content = Arrays.asList(
+                ExternalApiLogResponse.from(createMockApiLog(ApiProvider.SLACK, true)),
+                ExternalApiLogResponse.from(createMockApiLog(ApiProvider.GEMINI, true))
         );
+        Page<ExternalApiLogResponse> page = new PageImpl<>(content, PageRequest.of(0, 10), 2);
 
-        when(externalApiLogService.getAllApiLogs())
-                .thenReturn(logs);
+        when(externalApiLogService.getAllApiLogs(anyInt(), anyInt(), anyString(), anyBoolean()))
+                .thenReturn(page);
 
         // When & Then
         mockMvc.perform(get("/api/v1/notifications/api-logs")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sortBy", "calledAt")
+                        .param("isAsc", "false")
                         .with(authentication(createAuthentication("admin", Role.MASTER))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data.length()").value(2));
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content.length()").value(2));
     }
 
     @Test
     @DisplayName("외부 API 로그 조회 - Provider별 (200 OK)")
     void getApiLogsByProvider_Success() throws Exception {
         // Given
-        List<ExternalApiLog> logs = Arrays.asList(
-                createMockApiLog(ApiProvider.SLACK, true)
+        List<ExternalApiLogResponse> content = Arrays.asList(
+                ExternalApiLogResponse.from(createMockApiLog(ApiProvider.SLACK, true))
         );
+        Page<ExternalApiLogResponse> page = new PageImpl<>(content, PageRequest.of(0, 10), 1);
 
-        when(externalApiLogService.getApiLogsByProvider(ApiProvider.SLACK))
-                .thenReturn(logs);
+        when(externalApiLogService.getApiLogsByProvider(eq(ApiProvider.SLACK), anyInt(), anyInt(), anyString(), anyBoolean()))
+                .thenReturn(page);
 
         // When & Then
         mockMvc.perform(get("/api/v1/notifications/api-logs/provider/{provider}", "SLACK")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sortBy", "calledAt")
+                        .param("isAsc", "false")
                         .with(authentication(createAuthentication("admin", Role.MASTER))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data.length()").value(1))
-                .andExpect(jsonPath("$.data[0].apiProvider").value("SLACK"));
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content.length()").value(1))
+                .andExpect(jsonPath("$.data.content[0].apiProvider").value("SLACK"));
     }
 
     @Test
@@ -252,20 +263,88 @@ class NotificationControllerTest {
     void getApiLogsByMessageId_Success() throws Exception {
         // Given
         UUID messageId = UUID.randomUUID();
-        List<ExternalApiLog> logs = Arrays.asList(
-                createMockApiLog(ApiProvider.GEMINI, true),
-                createMockApiLog(ApiProvider.SLACK, true)
+        List<ExternalApiLogResponse> content = Arrays.asList(
+                ExternalApiLogResponse.from(createMockApiLog(ApiProvider.GEMINI, true)),
+                ExternalApiLogResponse.from(createMockApiLog(ApiProvider.SLACK, true))
         );
+        Page<ExternalApiLogResponse> page = new PageImpl<>(content, PageRequest.of(0, 10), 2);
 
-        when(externalApiLogService.getApiLogsByMessageId(messageId))
-                .thenReturn(logs);
+        when(externalApiLogService.getApiLogsByMessageId(eq(messageId), anyInt(), anyInt(), anyString(), anyBoolean()))
+                .thenReturn(page);
 
         // When & Then
         mockMvc.perform(get("/api/v1/notifications/api-logs/message/{messageId}", messageId)
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sortBy", "calledAt")
+                        .param("isAsc", "false")
                         .with(authentication(createAuthentication("admin", Role.MASTER))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data.length()").value(2));
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content.length()").value(2));
+    }
+
+    @Test
+    @DisplayName("알림 필터링 조회 - 성공 (200 OK)")
+    void searchNotifications_Success() throws Exception {
+        // Given
+        List<NotificationResponse> content = Arrays.asList(
+                createMockNotificationResponse(MessageStatus.SENT)
+        );
+        Page<NotificationResponse> page = new PageImpl<>(content, PageRequest.of(0, 10), 1);
+
+        when(notificationService.searchNotifications(
+                eq("testuser"),
+                eq("U123456"),
+                eq(MessageType.MANUAL),
+                eq(MessageStatus.SENT),
+                anyInt(), anyInt(), anyString(), anyBoolean()))
+                .thenReturn(page);
+
+        // When & Then
+        mockMvc.perform(get("/api/v1/notifications/search")
+                        .param("senderUsername", "testuser")
+                        .param("recipientSlackId", "U123456")
+                        .param("messageType", "MANUAL")
+                        .param("status", "SENT")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sortBy", "createdAt")
+                        .param("isAsc", "false")
+                        .with(authentication(createAuthentication("admin", Role.MASTER))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content.length()").value(1));
+    }
+
+    @Test
+    @DisplayName("API 통계 조회 - 성공 (200 OK)")
+    void getApiStatistics_Success() throws Exception {
+        // Given
+        ApiStatisticsResponse slackStats = ApiStatisticsResponse.of(
+                ApiProvider.SLACK, 100, 95, 5, 250.5, 100, 1500, BigDecimal.ZERO
+        );
+        ApiStatisticsResponse geminiStats = ApiStatisticsResponse.of(
+                ApiProvider.GEMINI, 50, 48, 2, 1200.3, 800, 3000, BigDecimal.valueOf(0.05)
+        );
+
+        Map<ApiProvider, ApiStatisticsResponse> statistics = new HashMap<>();
+        statistics.put(ApiProvider.SLACK, slackStats);
+        statistics.put(ApiProvider.GEMINI, geminiStats);
+
+        when(externalApiLogService.getApiStatistics())
+                .thenReturn(statistics);
+
+        // When & Then
+        mockMvc.perform(get("/api/v1/notifications/api-logs/stats")
+                        .with(authentication(createAuthentication("admin", Role.MASTER))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.SLACK").exists())
+                .andExpect(jsonPath("$.data.SLACK.totalCalls").value(100))
+                .andExpect(jsonPath("$.data.SLACK.successRate").value(95.0))
+                .andExpect(jsonPath("$.data.GEMINI").exists())
+                .andExpect(jsonPath("$.data.GEMINI.totalCalls").value(50))
+                .andExpect(jsonPath("$.data.GEMINI.totalCost").value(0.05));
     }
 
     @Test
