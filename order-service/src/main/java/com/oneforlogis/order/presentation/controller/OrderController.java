@@ -3,9 +3,11 @@ package com.oneforlogis.order.presentation.controller;
 import com.oneforlogis.common.api.ApiResponse;
 import com.oneforlogis.common.api.PageResponse;
 import com.oneforlogis.order.application.service.OrderService;
+import com.oneforlogis.order.presentation.request.OrderCancelRequest;
 import com.oneforlogis.order.presentation.request.OrderCreateRequest;
 import com.oneforlogis.order.presentation.request.OrderStatusChangeRequest;
 import com.oneforlogis.order.presentation.request.OrderUpdateRequest;
+import com.oneforlogis.order.presentation.response.OrderCancelResponse;
 import com.oneforlogis.order.presentation.response.OrderCreateResponse;
 import com.oneforlogis.order.presentation.response.OrderDetailResponse;
 import com.oneforlogis.order.presentation.response.OrderStatusChangeResponse;
@@ -115,6 +117,34 @@ public class OrderController {
     ) {
         List<OrderStatusHistoryResponse> response = orderService.getStatusHistory(orderId);
         return ApiResponse.success(response);
+    }
+
+    @Operation(
+            summary = "주문 취소 처리",
+            description = "주문을 취소합니다. " +
+                    "SHIPPED, DELIVERED 상태의 주문은 취소할 수 없습니다. " +
+                    "이미 CANCELED 상태인 주문에 대한 재요청 시 멱등성으로 200 OK를 반환합니다."
+    )
+    // TODO: 추후 Security/JWT 스펙 확정되면 활성화
+    // @PreAuthorize("hasAnyRole('MASTER','SUPPLIER_MANAGER','HUB_MANAGER')")
+    @PatchMapping("/{orderId}/cancel")
+    public ApiResponse<OrderCancelResponse> cancelOrder(
+            @PathVariable UUID orderId,
+            @Valid @RequestBody OrderCancelRequest request
+    ) {
+        // 취소 전 상태 확인 (멱등성 체크용)
+        OrderDetailResponse orderDetail = orderService.getOrderById(orderId);
+        boolean wasAlreadyCanceled = "CANCELED".equals(orderDetail.status());
+        
+        // 주문 취소 처리
+        OrderCancelResponse response = orderService.cancelOrder(orderId, request);
+        
+        // 이미 CANCELED 상태였으면 200 OK, 아니면 201 Created
+        if (wasAlreadyCanceled) {
+            return ApiResponse.success(response);
+        } else {
+            return ApiResponse.created(response);
+        }
     }
 }
 

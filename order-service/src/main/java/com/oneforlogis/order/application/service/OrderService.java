@@ -7,9 +7,11 @@ import com.oneforlogis.order.domain.model.Order;
 import com.oneforlogis.order.domain.model.OrderItem;
 import com.oneforlogis.order.domain.model.OrderStatus;
 import com.oneforlogis.order.domain.repository.OrderRepository;
+import com.oneforlogis.order.presentation.request.OrderCancelRequest;
 import com.oneforlogis.order.presentation.request.OrderCreateRequest;
 import com.oneforlogis.order.presentation.request.OrderStatusChangeRequest;
 import com.oneforlogis.order.presentation.request.OrderUpdateRequest;
+import com.oneforlogis.order.presentation.response.OrderCancelResponse;
 import com.oneforlogis.order.presentation.response.OrderCreateResponse;
 import com.oneforlogis.order.presentation.response.OrderDetailResponse;
 import com.oneforlogis.order.presentation.response.OrderStatusChangeResponse;
@@ -350,6 +352,43 @@ public class OrderService {
                 ))
                 .map(OrderStatusHistoryResponse::from)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public OrderCancelResponse cancelOrder(UUID orderId, OrderCancelRequest request) {
+        // 주문 조회
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+
+        // 취소 전 상태 저장 (멱등성 체크용)
+        OrderStatus beforeStatus = order.getStatus();
+
+        // 이미 CANCELED 상태인지 확인 (멱등성)
+        if (beforeStatus == OrderStatus.CANCELED) {
+            // 이미 취소된 상태면 동일 응답 반환 (Controller에서 200 OK 처리)
+            return new OrderCancelResponse(order.getId(), OrderStatus.CANCELED.name());
+        }
+
+        // SHIPPED, DELIVERED 상태 체크
+        if (beforeStatus == OrderStatus.SHIPPED || beforeStatus == OrderStatus.DELIVERED) {
+            throw new CustomException(ErrorCode.ORDER_ALREADY_FINAL);
+        }
+
+        // 주문 취소 처리 (상태 이력 자동 생성)
+        order.cancel(request.reason());
+
+        // TODO: 재고 복구 처리
+        // 주문 취소 시 주문 항목의 수량만큼 재고를 복구해야 함
+        // - product-service 또는 inventory-service와 통신하여 재고 복구
+        // - order.getOrderItems()를 순회하며 각 상품의 수량을 재고에 반영
+        // - 예: inventoryService.restoreStock(order.getOrderItems())
+        // - 실패 시 트랜잭션 롤백을 위해 @Transactional 유지 필요
+
+        // 저장
+        Order savedOrder = orderRepository.save(order);
+
+        // 응답 생성
+        return new OrderCancelResponse(savedOrder.getId(), OrderStatus.CANCELED.name());
     }
 }
 

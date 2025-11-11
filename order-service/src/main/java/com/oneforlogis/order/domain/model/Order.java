@@ -196,8 +196,13 @@ public class Order extends BaseEntity {
      * 주문 취소
      */
     public void cancel(String reason) {
-        if (this.status == OrderStatus.DELIVERED) {
-            throw new IllegalStateException("배송완료된 주문은 취소할 수 없습니다.");
+        // SHIPPED, DELIVERED 상태는 취소 불가
+        if (this.status == OrderStatus.SHIPPED || this.status == OrderStatus.DELIVERED) {
+            throw new IllegalStateException("배송중이거나 배송완료된 주문은 취소할 수 없습니다.");
+        }
+        // 이미 CANCELED 상태면 멱등성을 위해 아무것도 하지 않음
+        if (this.status == OrderStatus.CANCELED) {
+            return;
         }
         this.changeStatus(OrderStatus.CANCELED, reason);
     }
