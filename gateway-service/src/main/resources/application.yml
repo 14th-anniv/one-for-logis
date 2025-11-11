@@ -2,9 +2,16 @@ spring:
   profiles:
     active: local
 
+  # spring.data.redis가 없어서 RedisConfig에서 오류 발생했던 것. (25.11.11)
+  data:
+    redis:
+      host: localhost # 또는 컨테이너 이름
+      port: 6379
+      password:
+
 eureka:
   client:
-    register-with-eureka: false
+    register-with-eureka: true  # false가 아니라 true로 둬야 함. (11.11)
     fetch-registry: true
     service-url:
       defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
