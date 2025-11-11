@@ -16,11 +16,14 @@ import com.oneforlogis.notification.presentation.response.NotificationResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -157,6 +160,16 @@ public class NotificationService {
     }
 
     /**
+     * 알림 페이징 조회 (팀 표준 패턴)
+     * - 헬퍼 메서드 사용
+     */
+    public Page<NotificationResponse> getNotifications(int page, int size, String sortBy, boolean isAsc) {
+        Pageable pageable = createPageable(page, size, sortBy, isAsc);
+        Page<Notification> notifications = notificationRepository.findAll(pageable);
+        return notifications.map(NotificationResponse::from);
+    }
+
+    /**
      * Gemini AI를 통한 최종 발송 시한 계산
      */
     private String calculateDepartureDeadline(OrderNotificationRequest request) {
@@ -239,5 +252,79 @@ public class NotificationService {
         message.append("위 시한까지 출발해야 납품 기한을 맞출 수 있습니다.");
 
         return message.toString();
+    }
+
+    /**
+     * 페이징 헬퍼 메서드 (팀 표준 - company-service 패턴)
+     * - Size 검증: 10, 30, 50만 허용
+     * - Page 음수 보정
+     * - SortBy 화이트리스트 검증 (보안)
+     */
+    private Pageable createPageable(int page, int size, String sortBy, boolean isAsc) {
+        // Size 검증 (10, 30, 50만 허용)
+        int validatedSize = List.of(10, 30, 50).contains(size) ? size : 10;
+
+        // Page 음수 보정
+        int validatedPage = Math.max(page, 0);
+
+        // SortBy 화이트리스트 (SQL Injection 방지)
+        Set<String> allowedSortFields = Set.of("createdAt", "updatedAt", "id");
+        String validatedSortBy = allowedSortFields.contains(sortBy) ? sortBy : "createdAt";
+
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+        return PageRequest.of(validatedPage, validatedSize, Sort.by(direction, validatedSortBy));
+    }
+
+    /**
+     * 알림 필터링 조회 (동적 쿼리)
+     * - 발신자, 수신자, 메시지 타입, 상태별 필터링
+     */
+    public Page<NotificationResponse> searchNotifications(
+            String senderUsername,
+            String recipientSlackId,
+            MessageType messageType,
+            MessageStatus status,
+            int page,
+            int size,
+            String sortBy,
+            boolean isAsc
+    ) {
+        log.info("[NotificationService] 알림 필터링 조회 - senderUsername: {}, recipientSlackId: {}, messageType: {}, status: {}",
+                senderUsername, recipientSlackId, messageType, status);
+
+        Pageable pageable = createPageable(page, size, sortBy, isAsc);
+
+        // 모든 필터가 null인 경우 전체 조회
+        if (senderUsername == null && recipientSlackId == null && messageType == null && status == null) {
+            Page<Notification> notifications = notificationRepository.findAll(pageable);
+            return notifications.map(NotificationResponse::from);
+        }
+
+        // 필터 조건에 맞는 알림 조회
+        List<Notification> allNotifications = notificationRepository.findAll();
+        List<Notification> filteredNotifications = allNotifications.stream()
+                .filter(n -> senderUsername == null || (n.getSenderUsername() != null && n.getSenderUsername().equals(senderUsername)))
+                .filter(n -> recipientSlackId == null || n.getRecipientSlackId().equals(recipientSlackId))
+                .filter(n -> messageType == null || n.getMessageType() == messageType)
+                .filter(n -> status == null || n.getStatus() == status)
+                .toList();
+
+        // 수동 페이징 처리
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), filteredNotifications.size());
+        List<Notification> pagedNotifications = start >= filteredNotifications.size()
+                ? List.of()
+                : filteredNotifications.subList(start, end);
+
+        List<NotificationResponse> responses = pagedNotifications.stream()
+                .map(NotificationResponse::from)
+                .toList();
+
+        return new org.springframework.data.domain.PageImpl<>(
+                responses,
+                pageable,
+                filteredNotifications.size()
+        );
     }
 }
