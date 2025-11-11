@@ -10,6 +10,9 @@ import com.oneforlogis.company.application.dto.response.CompanyUpdateResponse;
 import com.oneforlogis.company.domain.model.Company;
 import com.oneforlogis.company.domain.model.CompanyType;
 import com.oneforlogis.company.domain.repository.CompanyRepository;
+import com.oneforlogis.company.infrastructure.client.HubClient;
+import com.oneforlogis.company.infrastructure.client.dto.HubResponse;
+import feign.FeignException;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class CompanyService {
 
+    private final HubClient hubClient;
     private final CompanyRepository companyRepository;
 
     // todo: hub 연결 후 검증 로직 추가
@@ -35,6 +39,8 @@ public class CompanyService {
     @Transactional
     public CompanyCreateResponse createCompany(CompanyCreateRequest request){
 
+        HubResponse hub = fetchHub(request.hubId());
+        log.info("등록하는 업체 허브 ID: {} ({})", hub.name(), hub.id());
         Company company = Company.createCompany(
                 request.name(),
                 CompanyType.from(request.type()),
@@ -106,5 +112,16 @@ public class CompanyService {
         int validatedPage = Math.max(page, 0); // 무조건 0부터 유효 (음수 방지 코드)
         Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
         return PageRequest.of(validatedPage, validatedSize, Sort.by(direction, sortBy));
+    }
+
+    /**
+     * hub get
+     */
+    public HubResponse fetchHub(UUID hubId) {
+        try {
+            return hubClient.getHub(hubId).data();
+        } catch (FeignException.NotFound e) {
+            throw new CustomException(ErrorCode.HUB_NOT_FOUND);
+        }
     }
 }

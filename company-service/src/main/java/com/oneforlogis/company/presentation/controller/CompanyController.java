@@ -49,7 +49,6 @@ public class CompanyController {
     @PreAuthorize("hasRole('MASTER') or hasRole('HUB_MANAGER')")
     @PostMapping
     public ResponseEntity<ApiResponse<CompanyCreateResponse>> createCompany(@RequestBody @Valid CompanyCreateRequest request){
-
         var response = companyService.createCompany(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(response));
     }
@@ -60,26 +59,22 @@ public class CompanyController {
     @Operation(summary = "업체 수정", description = "업체 정보를 수정합니다. 'MASTER, HUB_MANAGER(담당 허브), COMPANY_MANAGER(담당 업체)' 권한이 필요합니다.")
     @PreAuthorize("hasRole('MASTER') or hasRole('HUB_MANAGER') or hasRole('COMPANY_MANAGER')")
     @PatchMapping("/{companyId}")
-    public ResponseEntity<ApiResponse<CompanyUpdateResponse>> updateCompany(@PathVariable UUID companyId,
+    public ApiResponse<CompanyUpdateResponse> updateCompany(@PathVariable UUID companyId,
             @RequestBody @Valid CompanyUpdateRequest request){
-
         var response = companyService.updateCompany(companyId, request);
-        return ResponseEntity.ok().body(ApiResponse.success(response));
+        return ApiResponse.success(response);
     }
 
     /**
      * 업체 정보 삭제
-     * + noContent도 메세지를 띄움 (ok) 처리
      */
     @Operation(summary = "업체 삭제", description = "업체를 삭제합니다. 'MASTER, HUB_MANAGER(담당 허브)' 권한이 필요합니다.")
     @PreAuthorize("hasRole('MASTER') or hasRole('HUB_MANAGER')")
     @DeleteMapping("/{companyId}")
     public ResponseEntity<ApiResponse<Void>> deleteCompany(@PathVariable UUID companyId,
-            @AuthenticationPrincipal UserPrincipal userPrincipal){
-
-        String userName = userPrincipal.username();
-        companyService.deleteCompany(companyId, userName);
-        return ResponseEntity.ok().body(ApiResponse.noContent());
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        companyService.deleteCompany(companyId, userPrincipal.username());
+        return ResponseEntity.noContent().build();
     }
 
     /**
@@ -87,9 +82,9 @@ public class CompanyController {
      */
     @Operation(summary = "업체 단건 조회", description = "업체 ID로 단일 업체 정보를 조회합니다.")
     @GetMapping("/{companyId}")
-    public ResponseEntity<ApiResponse<CompanyDetailResponse>> getCompanyDetail(@PathVariable UUID companyId) {
+    public ApiResponse<CompanyDetailResponse> getCompanyDetail(@PathVariable UUID companyId) {
         var response = companyService.getCompanyDetail(companyId);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ApiResponse.success(response);
     }
 
     /**
@@ -103,7 +98,7 @@ public class CompanyController {
      */
     @Operation(summary = "업체 전체(검색) 조회", description = "업체 리스트를 조회합니다.")
     @GetMapping
-    public ResponseEntity<ApiResponse<PageResponse<CompanySearchResponse>>> getCompanies(
+    public ApiResponse<PageResponse<CompanySearchResponse>> getCompanies(
             @RequestParam(required = false) String companyName,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -112,6 +107,6 @@ public class CompanyController {
     ) {
         Page<CompanySearchResponse> companyPage = companyService.getCompanies(companyName, page, size, sortBy, isAsc)
                 .map(CompanySearchResponse::from);
-        return ResponseEntity.ok(ApiResponse.success(PageResponse.fromPage(companyPage)));
+        return ApiResponse.success(PageResponse.fromPage(companyPage));
     }
 }
