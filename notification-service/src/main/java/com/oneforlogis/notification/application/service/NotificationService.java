@@ -37,14 +37,30 @@ public class NotificationService {
     private final GeminiClientWrapper geminiClientWrapper;
 
     /**
-     * 주문 알림 발송 (order-service에서 호출)
+     * 주문 알림 발송 (order-service REST API에서 호출)
      * - Gemini AI로 최종 발송 시한 계산
      * - Slack 메시지 발송
      * - Notification 엔티티 저장
      */
     @Transactional
     public NotificationResponse sendOrderNotification(OrderNotificationRequest request) {
-        log.info("[NotificationService] 주문 알림 발송 시작 - orderId: {}", request.orderId());
+        return sendOrderNotificationInternal(request, null);
+    }
+
+    /**
+     * 주문 알림 발송 (Kafka 이벤트에서 호출, 멱등성 보장)
+     * - eventId를 Notification에 저장하여 중복 처리 방지
+     */
+    @Transactional
+    public NotificationResponse sendOrderNotificationFromEvent(OrderNotificationRequest request, String eventId) {
+        return sendOrderNotificationInternal(request, eventId);
+    }
+
+    /**
+     * 주문 알림 발송 내부 로직 (공통)
+     */
+    private NotificationResponse sendOrderNotificationInternal(OrderNotificationRequest request, String eventId) {
+        log.info("[NotificationService] 주문 알림 발송 시작 - orderId: {}, eventId: {}", request.orderId(), eventId);
 
         // Step 1: Gemini AI로 최종 발송 시한 계산
         String aiGeneratedDeadline = calculateDepartureDeadline(request);
@@ -63,6 +79,7 @@ public class NotificationService {
                 .messageContent(slackMessage)
                 .messageType(MessageType.ORDER_NOTIFICATION)
                 .referenceId(request.orderId())
+                .eventId(eventId)  // Kafka 이벤트인 경우에만 eventId 저장
                 .build();
 
         Notification savedNotification = notificationRepository.save(notification);
