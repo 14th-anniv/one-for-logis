@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class DeliveryService {
 
     private final DeliveryRepository deliveryRepository;
@@ -43,14 +44,12 @@ public class DeliveryService {
         return deliveryRepository.save(delivery).getDeliveryId();
     }
 
-    @Transactional(readOnly = true)
     public DeliveryResponse getOne(UUID deliveryId) {
         Delivery delivery = deliveryRepository.findById(deliveryId)
                 .orElseThrow(() -> new CustomException(ErrorCode.DELIVERY_NOT_FOUND));
         return DeliveryResponse.from(delivery);
     }
 
-    @Transactional(readOnly = true)
     public Page<DeliveryResponse> search(DeliverySearchCond cond, Pageable pageable) {
         Page<Delivery> result = deliveryRepository.findAll(
                 DeliverySpecifications.search(cond), pageable

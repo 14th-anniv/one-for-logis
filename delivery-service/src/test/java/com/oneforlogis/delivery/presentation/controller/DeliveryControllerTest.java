@@ -10,6 +10,7 @@ import com.oneforlogis.delivery.application.dto.DeliveryResponse;
 import com.oneforlogis.delivery.application.dto.DeliverySearchCond;
 import com.oneforlogis.delivery.application.service.DeliveryService;
 import com.oneforlogis.delivery.presentation.advice.DeliveryExceptionHandler;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,21 +39,21 @@ class DeliveryControllerTest {
     private DeliveryService deliveryService;
 
     private DeliveryResponse buildDeliveryResponse(UUID deliveryId) {
-        return DeliveryResponse.builder()
-                .id(deliveryId)
-                .orderId(UUID.randomUUID())
-                .status("WAITING_AT_HUB")
-                .fromHubId(UUID.randomUUID())
-                .toHubId(UUID.randomUUID())
-                .estimatedDistanceKm(0.0)
-                .estimatedDurationMin(0)
-                .arrivedDestinationHub(false)
-                .destinationHubArrivedAt(null)
-                .deliveryStaffId(null)
-                .receiverName("홍길동")
-                .receiverAddress("서울특별시 중구 을지로 100")
-                .receiverSlackId("U1234567")
-                .build();
+        return new DeliveryResponse(
+                deliveryId,
+                UUID.randomUUID(),
+                "WAITING_AT_HUB",
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                0.0,
+                0,
+                false,
+                null,
+                null,
+                "홍길동",
+                "서울특별시 중구 을지로 100",
+                "U1234567"
+        );
     }
 
     @Test
@@ -115,6 +116,22 @@ class DeliveryControllerTest {
                 .andExpect(jsonPath("$.content[0].id").value(id1.toString()))
                 .andExpect(jsonPath("$.content[1].id").value(id2.toString()))
                 .andExpect(jsonPath("$.totalElements").value(2));
+    }
+
+    @Test
+    @DisplayName("배송 목록/검색 조회 - 수령인 이름 부분검색")
+    void searchDeliveries_byReceiverName() throws Exception {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<DeliveryResponse> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+
+        Mockito.when(deliveryService.search(any(DeliverySearchCond.class), any(Pageable.class)))
+                .thenReturn(emptyPage);
+
+        mockMvc.perform(get("/api/v1/deliveries")
+                        .param("receiverName", "홍길")
+                        .param("page", "0").param("size", "10")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 
     @Test
