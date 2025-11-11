@@ -1,15 +1,24 @@
 package com.oneforlogis.delivery.presentation.controller;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.oneforlogis.common.exception.CustomException;
+import com.oneforlogis.common.exception.ErrorCode;
+import com.oneforlogis.delivery.application.dto.DeliveryAssignRequest;
 import com.oneforlogis.delivery.application.dto.DeliveryResponse;
 import com.oneforlogis.delivery.application.dto.DeliverySearchCond;
+import com.oneforlogis.delivery.application.dto.DeliveryStatusUpdateRequest;
 import com.oneforlogis.delivery.application.service.DeliveryService;
 import com.oneforlogis.delivery.presentation.advice.DeliveryExceptionHandler;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -35,6 +44,9 @@ class DeliveryControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @MockBean
     private DeliveryService deliveryService;
 
@@ -50,6 +62,24 @@ class DeliveryControllerTest {
                 false,
                 null,
                 null,
+                "홍길동",
+                "서울특별시 중구 을지로 100",
+                "U1234567"
+        );
+    }
+
+    private DeliveryResponse resp(UUID id, String status, Long staffId) {
+        return new DeliveryResponse(
+                id,
+                UUID.randomUUID(),
+                status,
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                0.0,
+                0,
+                false,
+                null,
+                staffId,
                 "홍길동",
                 "서울특별시 중구 을지로 100",
                 "U1234567"
@@ -153,5 +183,99 @@ class DeliveryControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(0)))
                 .andExpect(jsonPath("$.totalElements").value(0));
+    }
+
+
+    @Test
+    @DisplayName("배송 상태 변경 성공")
+    void updateStatus_success() throws Exception {
+        UUID deliveryId = UUID.randomUUID();
+        var req = new DeliveryStatusUpdateRequest("IN_TRANSIT", LocalDateTime.now());
+
+        Mockito.when(deliveryService.updateStatus(eq(deliveryId),
+                        any(DeliveryStatusUpdateRequest.class)))
+                .thenReturn(resp(deliveryId, "IN_TRANSIT", null));
+
+        mockMvc.perform(
+                        patch("/api/v1/deliveries/{deliveryId}/status", deliveryId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req))
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(deliveryId.toString()))
+                .andExpect(jsonPath("$.status").value("IN_TRANSIT"));
+    }
+
+    @Test
+    @DisplayName("배송 상태 변경 실패 - 잘못된 전이")
+    void updateStatus_invalidTransition() throws Exception {
+        UUID deliveryId = UUID.randomUUID();
+        var req = new DeliveryStatusUpdateRequest("DELIVERED", LocalDateTime.now());
+
+        Mockito.when(deliveryService.updateStatus(eq(deliveryId),
+                        any(DeliveryStatusUpdateRequest.class)))
+                .thenThrow(new CustomException(ErrorCode.INVALID_STATUS_TRANSITION));
+
+        mockMvc.perform(
+                        patch("/api/v1/deliveries/{deliveryId}/status", deliveryId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req))
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    @DisplayName("배송 담당자 배정 성공")
+    void assignStaff_success() throws Exception {
+        UUID deliveryId = UUID.randomUUID();
+        var req = new DeliveryAssignRequest(42L);
+
+        Mockito.when(deliveryService.assignStaff(eq(deliveryId), any(DeliveryAssignRequest.class)))
+                .thenReturn(resp(deliveryId, "WAITING_AT_HUB", 42L));
+
+        mockMvc.perform(
+                        patch("/api/v1/deliveries/{deliveryId}/assign", deliveryId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req))
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.deliveryStaffId").value(42));
+    }
+
+    @Test
+    @DisplayName("배송 담당자 배정 실패 - 허용되지 않는 상태")
+    void assignStaff_invalidState() throws Exception {
+        UUID deliveryId = UUID.randomUUID();
+        var req = new DeliveryAssignRequest(99L);
+
+        Mockito.when(deliveryService.assignStaff(eq(deliveryId), any(DeliveryAssignRequest.class)))
+                .thenThrow(new CustomException(ErrorCode.INVALID_DELIVERY_ASSIGNMENT));
+
+        mockMvc.perform(
+                        patch("/api/v1/deliveries/{deliveryId}/assign", deliveryId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req))
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    @DisplayName("배송 담당자 배정 해제 성공")
+    void unassignStaff_success() throws Exception {
+        UUID deliveryId = UUID.randomUUID();
+
+        Mockito.when(deliveryService.unassignStaff(eq(deliveryId)))
+                .thenReturn(resp(deliveryId, "WAITING_AT_HUB", null));
+
+        mockMvc.perform(
+                        patch("/api/v1/deliveries/{deliveryId}/unassign", deliveryId)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.deliveryStaffId", nullValue()));
     }
 }
