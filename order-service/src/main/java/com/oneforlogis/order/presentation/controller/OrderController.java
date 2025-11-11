@@ -4,8 +4,10 @@ import com.oneforlogis.common.api.ApiResponse;
 import com.oneforlogis.common.api.PageResponse;
 import com.oneforlogis.order.application.service.OrderService;
 import com.oneforlogis.order.presentation.request.OrderCreateRequest;
+import com.oneforlogis.order.presentation.request.OrderStatusChangeRequest;
 import com.oneforlogis.order.presentation.response.OrderCreateResponse;
 import com.oneforlogis.order.presentation.response.OrderDetailResponse;
+import com.oneforlogis.order.presentation.response.OrderStatusChangeResponse;
 import com.oneforlogis.order.presentation.response.OrderSummaryResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,6 +15,7 @@ import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -63,6 +66,18 @@ public class OrderController {
         PageResponse<OrderSummaryResponse> response = orderService.getOrders(
                 status, supplierId, receiverId, startDate, endDate, page, size, sort
         );
+        return ApiResponse.success(response);
+    }
+
+    @Operation(summary = "주문 상태 변경", description = "주문의 상태를 변경합니다. 상태 전이 규칙에 따라 유효한 상태 변경만 허용됩니다.")
+    // TODO: 추후 Security/JWT 스펙 확정되면 활성화
+    // @PreAuthorize("hasAnyRole('MASTER','SUPPLIER_MANAGER','HUB_MANAGER')")
+    @PatchMapping("/{orderId}/status")
+    public ApiResponse<OrderStatusChangeResponse> changeStatus(
+            @PathVariable UUID orderId,
+            @Valid @RequestBody OrderStatusChangeRequest request
+    ) {
+        OrderStatusChangeResponse response = orderService.changeStatus(orderId, request);
         return ApiResponse.success(response);
     }
 }

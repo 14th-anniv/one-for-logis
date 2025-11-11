@@ -59,7 +59,7 @@ public class Order extends BaseEntity {
     private List<OrderItem> orderItems = new ArrayList<>();
 
     // 단방향: Order -> OrderStatusHistory
-    @OneToMany(cascade = CascadeType.PERSIST)
+    @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "order_id") // p_order_status_history.order_id
     private List<OrderStatusHistory> statusHistories = new ArrayList<>();
 
@@ -154,6 +154,19 @@ public class Order extends BaseEntity {
      * OrderStatusHistory 추가
      */
     public void addStatusHistory(OrderStatusHistory history) {
+        if (history == null) {
+            throw new IllegalArgumentException("OrderStatusHistory는 null일 수 없습니다.");
+        }
+
+        // fromStatus가 비어 있으면 현재 주문 상태 또는 기본값으로 채워서 재생성
+        if (history.getFromStatus() == null) {
+            OrderStatus fallback = this.status != null ? this.status : OrderStatus.PENDING;
+            history = OrderStatusHistory.builder()
+                    .fromStatus(fallback)
+                    .toStatus(history.getToStatus())
+                    .reason(history.getReason())
+                    .build();
+        }
         this.statusHistories.add(history);
     }
 
@@ -161,11 +174,20 @@ public class Order extends BaseEntity {
      * 주문 상태 변경 및 이력 자동 생성
      */
     public void changeStatus(OrderStatus newStatus, String reason) {
+        if (this.status == null) {
+            throw new IllegalStateException("주문 상태가 null입니다. 상태 변경이 불가능합니다.");
+        }
+        
+        // 상태 변경 전 현재 상태를 명시적으로 저장
+        OrderStatus currentStatus = this.status;
+        
+        // OrderStatusHistory 생성 (Builder 패턴 사용)
         OrderStatusHistory history = OrderStatusHistory.builder()
-                .fromStatus(this.status)
+                .fromStatus(currentStatus)
                 .toStatus(newStatus)
-                .reason(reason)
+                .reason(reason != null && !reason.isBlank() ? reason : "상태 변경")
                 .build();
+        
         this.addStatusHistory(history);
         this.status = newStatus;
     }
