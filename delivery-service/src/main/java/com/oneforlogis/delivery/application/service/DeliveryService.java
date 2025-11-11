@@ -1,5 +1,8 @@
 package com.oneforlogis.delivery.application.service;
 
+import com.oneforlogis.common.exception.CustomException;
+import com.oneforlogis.common.exception.ErrorCode;
+import com.oneforlogis.delivery.application.dto.DeliveryResponse;
 import com.oneforlogis.delivery.application.event.OrderCreatedMessage;
 import com.oneforlogis.delivery.domain.model.Delivery;
 import com.oneforlogis.delivery.domain.repository.DeliveryRepository;
@@ -16,14 +19,15 @@ public class DeliveryService {
 
     @Transactional
     public UUID createIfAbsentFromOrder(OrderCreatedMessage msg) {
-        var orderId = msg.order().orderId();
+        UUID orderId = msg.order().orderId();
+
         if (deliveryRepository.existsByOrderId(orderId)) {
             return deliveryRepository.findByOrderId(orderId)
                     .orElseThrow()
                     .getDeliveryId();
         }
 
-        var delivery = Delivery.createFromOrder(
+        Delivery delivery = Delivery.createFromOrder(
                 orderId,
                 msg.order().route().startHubId(),
                 msg.order().route().destinationHubId(),
@@ -33,5 +37,12 @@ public class DeliveryService {
         );
 
         return deliveryRepository.save(delivery).getDeliveryId();
+    }
+
+    @Transactional(readOnly = true)
+    public DeliveryResponse getOne(UUID deliveryId) {
+        Delivery delivery = deliveryRepository.findById(deliveryId)
+                .orElseThrow(() -> new CustomException(ErrorCode.DELIVERY_NOT_FOUND));
+        return DeliveryResponse.from(delivery);
     }
 }
