@@ -11,24 +11,26 @@ public class DeliverySpecifications {
         return (root, query, cb) -> {
             Predicate predicate = cb.conjunction();
 
-            if (cond.getStatus() != null) {
-                predicate = cb.and(predicate,
-                        cb.equal(root.get("status"), cond.getStatus()));
+            if (cond.status() != null) {
+                predicate = cb.and(predicate, cb.equal(root.get("status"), cond.status()));
             }
 
-            if (cond.getReceiverName() != null) {
+            if (cond.receiverName() != null && !cond.receiverName().isBlank()) {
                 predicate = cb.and(predicate,
-                        cb.like(root.get("receiverName"), "%" + cond.getReceiverName() + "%"));
+                        cb.like(root.get("receiverName"), "%" + cond.receiverName() + "%"));
             }
 
-            if (cond.getStartHubId() != null) {
-                predicate = cb.and(predicate,
-                        cb.equal(root.get("startHubId"), cond.getStartHubId()));
+            if (cond.orderId() != null) {
+                predicate = cb.and(predicate, cb.equal(root.get("orderId"), cond.orderId()));
             }
 
-            if (cond.getDestinationHubId() != null) {
+            if (cond.fromHubId() != null) {
+                predicate = cb.and(predicate, cb.equal(root.get("startHubId"), cond.fromHubId()));
+            }
+
+            if (cond.toHubId() != null) {
                 predicate = cb.and(predicate,
-                        cb.equal(root.get("destinationHubId"), cond.getDestinationHubId()));
+                        cb.equal(root.get("destinationHubId"), cond.toHubId()));
             }
 
             return predicate;
