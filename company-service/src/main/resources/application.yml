@@ -4,7 +4,8 @@ server:
 spring:
   application:
     name: company-service
-
+  config:
+    import: optional:file:.env[.properties]
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${COMPANY_DB}
     username: ${POSTGRES_USER}

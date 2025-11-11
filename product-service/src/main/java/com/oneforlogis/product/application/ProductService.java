@@ -4,11 +4,14 @@ import com.oneforlogis.common.exception.CustomException;
 import com.oneforlogis.common.exception.ErrorCode;
 import com.oneforlogis.product.application.dto.request.ProductCreateRequest;
 import com.oneforlogis.product.application.dto.request.ProductUpdateRequest;
-import com.oneforlogis.product.application.dto.response.ProductDetailResponse;
 import com.oneforlogis.product.application.dto.response.ProductCreateResponse;
+import com.oneforlogis.product.application.dto.response.ProductDetailResponse;
 import com.oneforlogis.product.application.dto.response.ProductUpdateResponse;
 import com.oneforlogis.product.domain.model.Product;
 import com.oneforlogis.product.domain.repository.ProductRepository;
+import com.oneforlogis.product.infrastructure.client.CompanyClient;
+import com.oneforlogis.product.infrastructure.client.HubClient;
+import feign.FeignException;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -26,12 +29,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class ProductService {
 
+    private final CompanyClient companyClient;
+    private final HubClient hubClient;
     private final ProductRepository productRepository;
 
     // 상품 생성
     @Transactional
     public ProductCreateResponse createProduct(ProductCreateRequest request){
 
+        fetchCompany(request.companyId());
+        fetchHub(request.hubId());
         Product product = Product.createProduct(
                 request.name(),
                 request.quantity(),
@@ -97,4 +104,28 @@ public class ProductService {
         Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
         return PageRequest.of(validatedPage, validatedSize, Sort.by(direction, sortBy));
     }
+
+
+    /**
+     * hub get
+     */
+    public void fetchHub(UUID hubId) {
+        try {
+            hubClient.getHub(hubId);
+        } catch (FeignException.NotFound e) {
+            throw new CustomException(ErrorCode.HUB_NOT_FOUND);
+        }
+    }
+
+    /**
+     * company get
+     */
+    public void fetchCompany(UUID companyId) {
+        try {
+            companyClient.getCompany(companyId);
+        } catch (FeignException.NotFound e) {
+            throw new CustomException(ErrorCode.COMPANY_NOT_FOUND);
+        }
+    }
+
 }
