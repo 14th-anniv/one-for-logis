@@ -39,4 +39,5 @@ out/
 ### Environment & Local Config ###
 .env
 .env.docker
+.env.example
 **/application-local.yml
