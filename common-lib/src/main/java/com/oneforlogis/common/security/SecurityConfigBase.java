@@ -5,6 +5,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -21,6 +22,8 @@ public abstract class SecurityConfigBase {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(headerAuthFilter, UsernamePasswordAuthenticationFilter.class)
+			.sessionManagement(sessionManagement ->  // 세션 비활성화 -> JWT 사용
+				sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers(
                             "/swagger-ui/**",
