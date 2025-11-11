@@ -10,9 +10,9 @@ public enum ApiProvider {
     SLACK,
 
     /**
-     * ChatGPT API (출발시간 계산, TSP 경로 최적화)
+     * Google Gemini API (출발시간 계산, TSP 경로 최적화)
      */
-    CHATGPT,
+    GEMINI,
 
     /**
      * Naver Maps Directions 5 API (경로 계산)

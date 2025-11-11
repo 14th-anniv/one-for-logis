@@ -4,6 +4,8 @@ import com.oneforlogis.notification.domain.model.ApiProvider;
 import com.oneforlogis.notification.domain.model.ExternalApiLog;
 import com.oneforlogis.notification.domain.repository.ExternalApiLogRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -35,8 +37,18 @@ public class ExternalApiLogRepositoryImpl implements ExternalApiLogRepository {
     }
 
     @Override
+    public Page<ExternalApiLog> findAll(Pageable pageable) {
+        return jpaRepository.findAll(pageable);
+    }
+
+    @Override
     public List<ExternalApiLog> findByApiProvider(ApiProvider apiProvider) {
         return jpaRepository.findByApiProvider(apiProvider);
+    }
+
+    @Override
+    public Page<ExternalApiLog> findByApiProvider(ApiProvider apiProvider, Pageable pageable) {
+        return jpaRepository.findByApiProvider(apiProvider, pageable);
     }
 
     @Override
@@ -47,6 +59,11 @@ public class ExternalApiLogRepositoryImpl implements ExternalApiLogRepository {
     @Override
     public List<ExternalApiLog> findByMessageId(UUID messageId) {
         return jpaRepository.findByMessageId(messageId);
+    }
+
+    @Override
+    public Page<ExternalApiLog> findByMessageId(UUID messageId, Pageable pageable) {
+        return jpaRepository.findByMessageId(messageId, pageable);
     }
 
     @Override

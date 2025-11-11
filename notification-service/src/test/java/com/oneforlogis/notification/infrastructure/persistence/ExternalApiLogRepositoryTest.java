@@ -62,7 +62,7 @@ class ExternalApiLogRepositoryTest {
     @DisplayName("API 호출 성공 기록 테스트")
     void recordApiSuccess() {
         // Given
-        ExternalApiLog log = createApiLog(ApiProvider.CHATGPT, "completions");
+        ExternalApiLog log = createApiLog(ApiProvider.GEMINI, "completions");
         ExternalApiLog saved = externalApiLogRepository.save(log);
 
         // When
@@ -105,7 +105,7 @@ class ExternalApiLogRepositoryTest {
     void findByApiProvider() {
         // Given
         ExternalApiLog slackLog = createApiLog(ApiProvider.SLACK, "chat.postMessage");
-        ExternalApiLog chatGptLog = createApiLog(ApiProvider.CHATGPT, "completions");
+        ExternalApiLog chatGptLog = createApiLog(ApiProvider.GEMINI, "completions");
         externalApiLogRepository.save(slackLog);
         externalApiLogRepository.save(chatGptLog);
 
@@ -124,7 +124,7 @@ class ExternalApiLogRepositoryTest {
         ExternalApiLog successLog = createApiLog(ApiProvider.SLACK, "chat.postMessage");
         successLog.recordSuccess(Map.of("ok", true), 200, 1000L);
 
-        ExternalApiLog failLog = createApiLog(ApiProvider.CHATGPT, "completions");
+        ExternalApiLog failLog = createApiLog(ApiProvider.GEMINI, "completions");
         failLog.recordFailure("ERROR", "Failed", 500, 2000L);
 
         externalApiLogRepository.save(successLog);
@@ -145,7 +145,7 @@ class ExternalApiLogRepositoryTest {
         // Given
         UUID messageId = UUID.randomUUID();
         ExternalApiLog log1 = createApiLogWithMessageId(ApiProvider.SLACK, messageId);
-        ExternalApiLog log2 = createApiLogWithMessageId(ApiProvider.CHATGPT, messageId);
+        ExternalApiLog log2 = createApiLogWithMessageId(ApiProvider.GEMINI, messageId);
         externalApiLogRepository.save(log1);
         externalApiLogRepository.save(log2);
 
@@ -201,24 +201,24 @@ class ExternalApiLogRepositoryTest {
         LocalDateTime start = LocalDateTime.now().minusHours(1);
         LocalDateTime end = LocalDateTime.now().plusHours(1);
 
-        ExternalApiLog log = createApiLog(ApiProvider.CHATGPT, "completions");
+        ExternalApiLog log = createApiLog(ApiProvider.GEMINI, "completions");
         externalApiLogRepository.save(log);
 
         // When
         List<ExternalApiLog> logs = externalApiLogRepository.findByApiProviderAndCalledAtBetween(
-                ApiProvider.CHATGPT, start, end
+                ApiProvider.GEMINI, start, end
         );
 
         // Then
         assertThat(logs).isNotEmpty();
-        assertThat(logs).allMatch(l -> l.getApiProvider() == ApiProvider.CHATGPT);
+        assertThat(logs).allMatch(l -> l.getApiProvider() == ApiProvider.GEMINI);
     }
 
     @Test
     @DisplayName("API 호출 비용 설정 테스트")
     void setApiCost() {
         // Given
-        ExternalApiLog log = createApiLog(ApiProvider.CHATGPT, "completions");
+        ExternalApiLog log = createApiLog(ApiProvider.GEMINI, "completions");
         ExternalApiLog saved = externalApiLogRepository.save(log);
 
         // When
@@ -248,7 +248,7 @@ class ExternalApiLogRepositoryTest {
         ));
 
         ExternalApiLog log = ExternalApiLog.builder()
-                .apiProvider(ApiProvider.CHATGPT)
+                .apiProvider(ApiProvider.GEMINI)
                 .apiMethod("completions")
                 .requestData(requestData)
                 .build();

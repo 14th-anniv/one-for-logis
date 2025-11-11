@@ -1,3 +1,6 @@
+server:
+  port: 8400
+
 spring:
   config:
     import: optional:file:.env[.properties]

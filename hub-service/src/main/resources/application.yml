@@ -1,3 +1,6 @@
+server:
+  port: 8200
+
 spring:
   config:
     import: optional:file:.env[.properties]
@@ -8,6 +11,11 @@ spring:
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
 
   jpa:
     hibernate:
@@ -33,3 +41,4 @@ management:
 logging:
   level:
     org.springframework: INFO
+    org.springframework.cache: TRACE
