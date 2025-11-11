@@ -24,9 +24,9 @@ public class DeliveryStatusChangedConsumer {
 
     @KafkaListener(
             topics = "#{@topicProperties.deliveryStatusChanged}",
-            groupId = "notification-service"
+            groupId = "notification-service",
+            containerFactory = "deliveryStatusChangedKafkaListenerContainerFactory"
     )
-    @Transactional
     public void onMessage(DeliveryStatusChangedEvent event) {
         log.info("🚚 Received delivery.status.changed event - eventId: {}, deliveryId: {}, status: {} → {}",
                 event.eventId(), event.delivery().deliveryId(),
@@ -45,49 +45,60 @@ public class DeliveryStatusChangedConsumer {
             // Slack 메시지 생성
             String message = buildStatusChangeMessage(delivery);
 
-            // Notification 엔티티 생성 (SYSTEM 타입, eventId 포함)
-            Notification notification = Notification.builder()
-                    .senderType(SenderType.SYSTEM)
-                    .senderUsername(null)
-                    .senderSlackId(null)
-                    .senderName(null)
-                    .recipientSlackId(delivery.recipientSlackId())
-                    .recipientName(delivery.recipientName())
-                    .messageContent(message)
-                    .messageType(MessageType.DELIVERY_STATUS_UPDATE)
-                    .referenceId(delivery.deliveryId())
-                    .eventId(event.eventId())  // 멱등성 보장용 eventId 저장
-                    .build();
+            // Notification 엔티티 생성 및 저장 (먼저 DB에 커밋하여 멱등성 보장)
+            Notification savedNotification = saveNotification(event.eventId(), delivery, message);
 
-            Notification savedNotification = notificationRepository.save(notification);
+            // Slack 메시지 발송 (트랜잭션 외부)
+            sendSlackNotification(savedNotification, delivery, message);
 
-            // Slack 메시지 발송
-            SlackMessageRequest slackRequest = SlackMessageRequest.builder()
-                    .channel(delivery.recipientSlackId())
-                    .text(message)
-                    .build();
-
-            SlackMessageResponse slackResponse = slackClientWrapper.postMessage(
-                    slackRequest,
-                    savedNotification.getId()
-            );
-
-            // 발송 상태 업데이트
-            if (slackResponse != null && slackResponse.isOk()) {
-                savedNotification.markAsSent();
-                log.info("✅ Delivery status notification sent - deliveryId: {}, notificationId: {}",
-                        delivery.deliveryId(), savedNotification.getId());
-            } else {
-                String error = slackResponse != null ? slackResponse.getError() : "Unknown error";
-                savedNotification.markAsFailed(error);
-                log.error("❌ Failed to send delivery status notification - deliveryId: {}, error: {}",
-                        delivery.deliveryId(), error);
-            }
+            log.info("✅ Delivery status notification processed - deliveryId: {}, notificationId: {}",
+                    delivery.deliveryId(), savedNotification.getId());
 
         } catch (Exception e) {
             log.error("❌ Failed to process delivery.status.changed event - eventId: {}, deliveryId: {}, error: {}",
                     event.eventId(), event.delivery().deliveryId(), e.getMessage(), e);
             throw e;
+        }
+    }
+
+    @Transactional
+    private Notification saveNotification(String eventId, DeliveryStatusChangedEvent.DeliveryData delivery, String message) {
+        Notification notification = Notification.builder()
+                .senderType(SenderType.SYSTEM)
+                .senderUsername(null)
+                .senderSlackId(null)
+                .senderName(null)
+                .recipientSlackId(delivery.recipientSlackId())
+                .recipientName(delivery.recipientName())
+                .messageContent(message)
+                .messageType(MessageType.DELIVERY_STATUS_UPDATE)
+                .referenceId(delivery.deliveryId())
+                .eventId(eventId)  // 멱등성 보장용 eventId 저장
+                .build();
+
+        return notificationRepository.save(notification);
+    }
+
+    @Transactional
+    private void sendSlackNotification(Notification notification, DeliveryStatusChangedEvent.DeliveryData delivery, String message) {
+        SlackMessageRequest slackRequest = SlackMessageRequest.builder()
+                .channel(delivery.recipientSlackId())
+                .text(message)
+                .build();
+
+        SlackMessageResponse slackResponse = slackClientWrapper.postMessage(
+                slackRequest,
+                notification.getId()
+        );
+
+        // 발송 상태 업데이트
+        if (slackResponse != null && slackResponse.isOk()) {
+            notification.markAsSent();
+            log.info("✅ Slack message sent - deliveryId: {}", delivery.deliveryId());
+        } else {
+            String error = slackResponse != null ? slackResponse.getError() : "Unknown error";
+            notification.markAsFailed(error);
+            log.error("❌ Failed to send Slack message - deliveryId: {}, error: {}", delivery.deliveryId(), error);
         }
     }
 

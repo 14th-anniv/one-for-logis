@@ -21,7 +21,8 @@ public class OrderCreatedConsumer {
 
     @KafkaListener(
             topics = "#{@topicProperties.orderCreated}",
-            groupId = "notification-service"
+            groupId = "notification-service",
+            containerFactory = "orderCreatedKafkaListenerContainerFactory"
     )
     public void onMessage(OrderCreatedEvent event) {
         log.info("📦 Received order.created event - eventId: {}, orderId: {}",
