@@ -21,20 +21,20 @@ spring:
         format_sql: true
 
   kafka:
+    listener:
+      auto-startup: false
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
-    consumer:
-      group-id: delivery-service
-      auto-offset-reset: latest
-      properties:
-        spring.json.trusted.packages: "com.oneforlogis.*"
 
-topics:
-  order-created: ${ORDER_CREATED_TOPIC:order.created}
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+      - org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration
 
 eureka:
   client:
-    register-with-eureka: true
-    fetch-registry: true
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
     service-url:
       defaultZone: ${EUREKA_SERVER_URL:http://eureka-server:8761/eureka/}
 
@@ -46,4 +46,6 @@ management:
 
 logging:
   level:
+    org.apache.kafka.clients.NetworkClient: ERROR
+    com.netflix.discovery: WARN
     org.springframework: INFO
