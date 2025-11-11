@@ -41,3 +41,6 @@ out/
 .env.docker
 .env.example
 **/application-local.yml
+**/application-local.yml
+
+init_dummy_data.sql
