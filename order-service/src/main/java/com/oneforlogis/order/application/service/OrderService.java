@@ -9,10 +9,12 @@ import com.oneforlogis.order.domain.model.OrderStatus;
 import com.oneforlogis.order.domain.repository.OrderRepository;
 import com.oneforlogis.order.presentation.request.OrderCreateRequest;
 import com.oneforlogis.order.presentation.request.OrderStatusChangeRequest;
+import com.oneforlogis.order.presentation.request.OrderUpdateRequest;
 import com.oneforlogis.order.presentation.response.OrderCreateResponse;
 import com.oneforlogis.order.presentation.response.OrderDetailResponse;
 import com.oneforlogis.order.presentation.response.OrderStatusChangeResponse;
 import com.oneforlogis.order.presentation.response.OrderSummaryResponse;
+import com.oneforlogis.order.presentation.response.OrderUpdateResponse;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -249,6 +251,85 @@ public class OrderService {
             case SHIPPED -> to == OrderStatus.DELIVERED;
             default -> false; // DELIVERED, CANCELED는 이미 위에서 체크됨
         };
+    }
+
+    @Transactional
+    public OrderUpdateResponse updateOrder(UUID orderId, OrderUpdateRequest request) {
+        // 주문 조회
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+
+        // DELIVERED, CANCELED 상태는 수정 불가
+        if (order.getStatus() == OrderStatus.DELIVERED || order.getStatus() == OrderStatus.CANCELED) {
+            throw new CustomException(ErrorCode.ORDER_ALREADY_FINAL);
+        }
+
+        // requestNote만 수정하는 경우는 DELIVERED, CANCELED가 아니면 가능
+        // 다른 필드 수정은 PENDING 상태일 때만 가능
+        boolean isOnlyRequestNoteUpdate = request.requestNote() != null 
+                && request.supplierCompanyId() == null 
+                && request.receiverCompanyId() == null 
+                && (request.items() == null || request.items().isEmpty());
+        
+        if (!isOnlyRequestNoteUpdate && order.getStatus() != OrderStatus.PENDING) {
+            throw new CustomException(ErrorCode.ORDER_ALREADY_FINAL);
+        }
+
+        // OrderItem 리스트 변환 (items가 있는 경우)
+        List<OrderItem> newItems = null;
+        if (request.items() != null && !request.items().isEmpty()) {
+            // TODO: 추후 product-service에서 실제 unitPrice 조회하도록 변경
+            newItems = request.items().stream()
+                    .map(item -> {
+                        // 기존 OrderItem에서 productId로 찾아서 unitPrice 가져오기
+                        // 없으면 0으로 설정 (임시)
+                        BigDecimal unitPrice = order.getOrderItems().stream()
+                                .filter(existingItem -> existingItem.getProductId().equals(item.productId()))
+                                .findFirst()
+                                .map(OrderItem::getUnitPrice)
+                                .orElse(BigDecimal.ZERO);
+                        
+                        return OrderItem.from(
+                                item.productId(),
+                                // productName은 기존에서 가져오거나 product-service에서 조회 필요
+                                order.getOrderItems().stream()
+                                        .filter(existingItem -> existingItem.getProductId().equals(item.productId()))
+                                        .findFirst()
+                                        .map(OrderItem::getProductName)
+                                        .orElse("상품명 없음"),
+                                unitPrice,
+                                item.quantity()
+                        );
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        // 주문 정보 수정
+        try {
+            order.update(
+                    request.requestNote(),
+                    request.supplierCompanyId(),
+                    request.receiverCompanyId(),
+                    newItems
+            );
+        } catch (IllegalStateException e) {
+            // Order.update()에서 던지는 예외를 적절한 ErrorCode로 변환
+            String message = e.getMessage();
+            if (message != null && message.contains("완료되거나 취소된")) {
+                throw new CustomException(ErrorCode.ORDER_ALREADY_FINAL);
+            } else if (message != null && (message.contains("공급업체") || message.contains("수신업체") || message.contains("주문 항목"))) {
+                // PENDING 상태가 아닐 때 수정 시도
+                throw new CustomException(ErrorCode.ORDER_ALREADY_FINAL);
+            } else {
+                throw new CustomException(ErrorCode.ORDER_ALREADY_FINAL);
+            }
+        }
+
+        // 저장
+        Order savedOrder = orderRepository.save(order);
+
+        // 응답 생성
+        return new OrderUpdateResponse(savedOrder.getId());
     }
 }
 

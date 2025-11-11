@@ -5,10 +5,12 @@ import com.oneforlogis.common.api.PageResponse;
 import com.oneforlogis.order.application.service.OrderService;
 import com.oneforlogis.order.presentation.request.OrderCreateRequest;
 import com.oneforlogis.order.presentation.request.OrderStatusChangeRequest;
+import com.oneforlogis.order.presentation.request.OrderUpdateRequest;
 import com.oneforlogis.order.presentation.response.OrderCreateResponse;
 import com.oneforlogis.order.presentation.response.OrderDetailResponse;
 import com.oneforlogis.order.presentation.response.OrderStatusChangeResponse;
 import com.oneforlogis.order.presentation.response.OrderSummaryResponse;
+import com.oneforlogis.order.presentation.response.OrderUpdateResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -78,6 +80,24 @@ public class OrderController {
             @Valid @RequestBody OrderStatusChangeRequest request
     ) {
         OrderStatusChangeResponse response = orderService.changeStatus(orderId, request);
+        return ApiResponse.success(response);
+    }
+
+    @Operation(
+            summary = "주문 정보 수정",
+            description = "주문 정보를 수정합니다. " +
+                    "PENDING 상태일 경우에만 수정이 가능합니다. " +
+                    "단, requestNote 필드만 DELIVERED, CANCELED가 아니라면 수정 가능합니다. " +
+                    "상태가 CANCELED 또는 DELIVERED인 주문은 수정할 수 없습니다."
+    )
+    // TODO: 추후 Security/JWT 스펙 확정되면 활성화
+    // @PreAuthorize("hasAnyRole('MASTER','SUPPLIER_MANAGER','HUB_MANAGER')")
+    @PatchMapping("/{orderId}")
+    public ApiResponse<OrderUpdateResponse> updateOrder(
+            @PathVariable UUID orderId,
+            @Valid @RequestBody OrderUpdateRequest request
+    ) {
+        OrderUpdateResponse response = orderService.updateOrder(orderId, request);
         return ApiResponse.success(response);
     }
 }

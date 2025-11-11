@@ -203,6 +203,48 @@ public class Order extends BaseEntity {
     }
 
     /**
+     * 주문 정보 수정
+     * - requestNote: DELIVERED, CANCELED가 아닌 모든 상태에서 수정 가능
+     * - supplierCompanyId, receiverCompanyId, items: PENDING 상태일 때만 수정 가능
+     */
+    public void update(String requestNote, UUID supplierCompanyId, UUID receiverCompanyId, List<OrderItem> newItems) {
+        // DELIVERED, CANCELED 상태는 모든 필드 수정 불가
+        if (this.status == OrderStatus.DELIVERED || this.status == OrderStatus.CANCELED) {
+            throw new IllegalStateException("완료되거나 취소된 주문은 수정할 수 없습니다.");
+        }
+
+        // requestNote 수정 (DELIVERED, CANCELED가 아닌 모든 상태에서 가능)
+        if (requestNote != null) {
+            this.requestNote = requestNote;
+        }
+
+        // PENDING 상태일 때만 supplierCompanyId, receiverCompanyId, items 수정 가능
+        if (this.status == OrderStatus.PENDING) {
+            if (supplierCompanyId != null) {
+                this.supplierCompanyId = supplierCompanyId;
+            }
+            if (receiverCompanyId != null) {
+                this.receiverCompanyId = receiverCompanyId;
+            }
+            if (newItems != null && !newItems.isEmpty()) {
+                // 기존 items 제거 후 새 items 추가
+                this.orderItems.clear();
+                for (OrderItem item : newItems) {
+                    this.addOrderItem(item);
+                }
+            }
+        } else {
+            // PENDING 상태가 아닐 때 supplierCompanyId, receiverCompanyId, items 수정 시도 시 예외
+            if (supplierCompanyId != null || receiverCompanyId != null) {
+                throw new IllegalStateException("주문 접수 상태가 아닌 경우 공급업체/수신업체 정보는 수정할 수 없습니다.");
+            }
+            if (newItems != null && !newItems.isEmpty()) {
+                throw new IllegalStateException("주문 확정 후 주문 항목은 수정할 수 없습니다.");
+            }
+        }
+    }
+
+    /**
      * 엔티티 저장 전 검증
      */
     @PrePersist
