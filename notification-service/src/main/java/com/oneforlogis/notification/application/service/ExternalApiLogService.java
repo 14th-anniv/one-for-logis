@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ExternalApiLogService {
 
     private final ExternalApiLogRepository apiLogRepository;
@@ -131,7 +132,6 @@ public class ExternalApiLogService {
      * 모든 외부 API 로그 조회
      * - MASTER 권한만 조회 가능
      */
-    @Transactional(readOnly = true)
     public List<ExternalApiLog> getAllApiLogs() {
         return apiLogRepository.findAll();
     }
@@ -140,7 +140,6 @@ public class ExternalApiLogService {
      * 모든 외부 API 로그 페이징 조회
      * - MASTER 권한만 조회 가능
      */
-    @Transactional(readOnly = true)
     public Page<ExternalApiLog> getAllApiLogs(Pageable pageable) {
         return apiLogRepository.findAll(pageable);
     }
@@ -149,7 +148,6 @@ public class ExternalApiLogService {
      * 모든 외부 API 로그 페이징 조회 (팀 표준 패턴)
      * - 헬퍼 메서드 사용
      */
-    @Transactional(readOnly = true)
     public Page<ExternalApiLogResponse> getAllApiLogs(
             int page, int size, String sortBy, boolean isAsc) {
         Pageable pageable = createPageable(page, size, sortBy, isAsc);
@@ -160,7 +158,6 @@ public class ExternalApiLogService {
     /**
      * API 제공자별 로그 조회
      */
-    @Transactional(readOnly = true)
     public List<ExternalApiLog> getApiLogsByProvider(ApiProvider provider) {
         return apiLogRepository.findByApiProvider(provider);
     }
@@ -168,7 +165,6 @@ public class ExternalApiLogService {
     /**
      * API 제공자별 로그 페이징 조회
      */
-    @Transactional(readOnly = true)
     public Page<ExternalApiLog> getApiLogsByProvider(ApiProvider provider, Pageable pageable) {
         return apiLogRepository.findByApiProvider(provider, pageable);
     }
@@ -177,7 +173,6 @@ public class ExternalApiLogService {
      * API 제공자별 로그 페이징 조회 (팀 표준 패턴)
      * - 헬퍼 메서드 사용
      */
-    @Transactional(readOnly = true)
     public Page<ExternalApiLogResponse> getApiLogsByProvider(
             ApiProvider provider, int page, int size, String sortBy, boolean isAsc) {
         Pageable pageable = createPageable(page, size, sortBy, isAsc);
@@ -188,7 +183,6 @@ public class ExternalApiLogService {
     /**
      * 메시지 ID로 로그 조회
      */
-    @Transactional(readOnly = true)
     public List<ExternalApiLog> getApiLogsByMessageId(UUID messageId) {
         return apiLogRepository.findByMessageId(messageId);
     }
@@ -196,7 +190,6 @@ public class ExternalApiLogService {
     /**
      * 메시지 ID로 로그 페이징 조회
      */
-    @Transactional(readOnly = true)
     public Page<ExternalApiLog> getApiLogsByMessageId(UUID messageId, Pageable pageable) {
         return apiLogRepository.findByMessageId(messageId, pageable);
     }
@@ -205,7 +198,6 @@ public class ExternalApiLogService {
      * 메시지 ID로 로그 페이징 조회 (팀 표준 패턴)
      * - 헬퍼 메서드 사용
      */
-    @Transactional(readOnly = true)
     public Page<ExternalApiLogResponse> getApiLogsByMessageId(
             UUID messageId, int page, int size, String sortBy, boolean isAsc) {
         Pageable pageable = createPageable(page, size, sortBy, isAsc);
@@ -216,7 +208,6 @@ public class ExternalApiLogService {
     /**
      * API 제공자별 통계 계산
      */
-    @Transactional(readOnly = true)
     public Map<ApiProvider, ApiStatisticsResponse> getApiStatistics() {
         List<ExternalApiLog> allLogs = apiLogRepository.findAll();
 
