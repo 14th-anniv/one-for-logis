@@ -39,7 +39,8 @@ public abstract class SecurityConfigBase {
                             "/swagger-ui/**",
                             "/v3/api-docs/**",
                             "/actuator/**",
-                            "/health/**"
+                            "/health/**",
+                            "/api/v1/internal/**" // 내부 호출용
                     ).permitAll();
 
                     configureAuthorization(auth);
