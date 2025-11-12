@@ -1,7 +1,5 @@
 package com.oneforlogis.hub.application.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.oneforlogis.common.api.PageResponse;
 import com.oneforlogis.common.exception.CustomException;
 import com.oneforlogis.common.exception.ErrorCode;
@@ -45,7 +43,6 @@ public class HubRouteService {
 
         HubRoute hubRoute = HubRoute.create(request);
         hubRouteRepository.save(hubRoute);
-        hubRouteRepository.deleteAllByRouteType(RouteType.RELAY);
         hubRouteCacheService.syncOnCreate(hubRoute);
 
         return HubRouteResponse.from(hubRoute, fromHub, toHub);
@@ -62,7 +59,6 @@ public class HubRouteService {
 
         hubRoute.update(request);
         hubRouteRepository.flush();
-        hubRouteRepository.deleteAllByRouteType(RouteType.RELAY);
         hubRouteCacheService.syncOnUpdate(hubRoute);
 
         return HubRouteResponse.from(hubRoute, fromHub, toHub);
@@ -75,7 +71,6 @@ public class HubRouteService {
         if (hubRoute.isDeleted()) throw new CustomException(ErrorCode.HUB_ROUTE_DELETED);
 
         hubRoute.markAsDeleted(userName);
-        hubRouteRepository.deleteAllByRouteType(RouteType.RELAY);
         hubRouteCacheService.syncOnDelete(hubRoute);
     }
 
@@ -135,7 +130,6 @@ public class HubRouteService {
         return PageResponse.fromPage(responsePage);
     }
 
-    @Transactional
     public ShortestRouteResponse getShortestRoute(UUID fromHubId, UUID toHubId) {
         ShortestRouteResponse cached = hubRouteCacheService.getShortestRoute(fromHubId, toHubId);
         if (cached != null) return cached;
@@ -149,17 +143,6 @@ public class HubRouteService {
 
         Map<UUID, List<HubEdge>> graph = hubRouteCacheService.getGraph();
         DijkstraResult result = dijkstraService.findShortestPath(graph, fromHubId, toHubId);
-
-        ObjectMapper mapper = new ObjectMapper();
-        String pathJson;
-        try {
-            pathJson = mapper.writeValueAsString(result.pathNodes());
-        } catch (JsonProcessingException e) {
-            throw new CustomException(ErrorCode.JSON_SERIALIZATION_FAILED);
-        }
-
-        HubRoute shortestRoute = HubRoute.createRelayRoute(fromHubId, toHubId, result, pathJson);
-        hubRouteRepository.save(shortestRoute);
 
         List<UUID> allHubIds = Stream.concat(
                 Stream.of(fromHubId, toHubId),
@@ -180,7 +163,7 @@ public class HubRouteService {
                 .map(RouteEdgeResponse::from)
                 .toList();
 
-        ShortestRouteResponse response = ShortestRouteResponse.from(shortestRoute, fromHub, toHub, pathNodes, routeEdges);
+        ShortestRouteResponse response = ShortestRouteResponse.fromResult(result, fromHub, toHub, pathNodes, routeEdges);
 
         hubRouteCacheService.saveShortestRouteCache(response);
 
