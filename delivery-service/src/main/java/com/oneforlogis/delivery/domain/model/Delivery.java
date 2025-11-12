@@ -138,21 +138,15 @@ public class Delivery {
                             "목적지 허브 도착 상태에서는 '배송 중', '업체 이동 중' 또는 '취소'로만 변경할 수 있습니다.");
                 }
             }
-            case OUT_FOR_DELIVERY -> {
+            case OUT_FOR_DELIVERY, MOVING_TO_COMPANY -> {
                 if (newStatus != DeliveryStatus.COMPLETED
                         && newStatus != DeliveryStatus.CANCELED) {
-                    throw new IllegalStateException("배송 중 상태에서는 '배송 완료' 또는 '취소'로만 변경할 수 있습니다.");
+                    throw new IllegalStateException(
+                            "배송/업체 이동 중 상태에서는 '배송 완료' 또는 '취소'로만 변경할 수 있습니다.");
                 }
             }
-            case MOVING_TO_COMPANY -> {
-                if (newStatus != DeliveryStatus.COMPLETED
-                        && newStatus != DeliveryStatus.CANCELED) {
-                    throw new IllegalStateException("업체 이동 중 상태에서는 '배송 완료' 또는 '취소'로만 변경할 수 있습니다.");
-                }
-            }
-            case COMPLETED, CANCELED -> {
-                throw new IllegalStateException("이미 완료되었거나 취소된 배송은 상태를 변경할 수 없습니다.");
-            }
+            case COMPLETED, CANCELED ->
+                    throw new IllegalStateException("이미 완료되었거나 취소된 배송은 상태를 변경할 수 없습니다.");
         }
 
         this.status = newStatus;
@@ -170,5 +164,46 @@ public class Delivery {
             throw new IllegalStateException("완료/취소된 배송은 배정 해제할 수 없습니다.");
         }
         this.deliveryStaffId = null;
+    }
+
+    public void applyRouteEvent(DeliveryRouteStatus routeStatus) {
+        switch (routeStatus) {
+            case ARRIVED_AT_HUB -> {
+                if (this.status == DeliveryStatus.WAITING_AT_HUB) {
+                    this.status = DeliveryStatus.MOVING_BETWEEN_HUBS;
+                } else if (this.status == DeliveryStatus.MOVING_BETWEEN_HUBS) {
+                    this.status = DeliveryStatus.ARRIVED_DEST_HUB;
+                }
+            }
+            case DEPARTED_FROM_HUB -> {
+                if (this.status == DeliveryStatus.ARRIVED_DEST_HUB) {
+                    this.status = DeliveryStatus.OUT_FOR_DELIVERY;
+                }
+            }
+            case PICKED_UP -> {
+                if (this.status == DeliveryStatus.OUT_FOR_DELIVERY) {
+                    this.status = DeliveryStatus.MOVING_TO_COMPANY;
+                }
+            }
+            case DROPPED_OFF -> {
+                if (this.status == DeliveryStatus.MOVING_TO_COMPANY) {
+                    this.status = DeliveryStatus.COMPLETED;
+                }
+            }
+            case IN_TRANSIT -> {
+                // 상태 전이 없음
+            }
+        }
+    }
+
+    public void addTravelProgress(Double addKm, Integer addMin) {
+        if (addKm != null) {
+            this.estimatedDistanceKm =
+                    (this.estimatedDistanceKm == null ? 0.0 : this.estimatedDistanceKm) + addKm;
+        }
+        if (addMin != null) {
+            this.estimatedDurationMin =
+                    (this.estimatedDurationMin == null ? 0 : this.estimatedDurationMin) + addMin;
+        }
     }
 }
