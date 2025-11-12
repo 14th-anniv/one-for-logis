@@ -93,6 +93,38 @@ public class ProductService {
 
 
 
+    /**
+     * 내부용 메서드 <-> internal
+     * @param productId 상품 ID
+     * @param amount 수량
+     */
+    @Transactional
+    public Product decreaseStock(UUID productId, int amount) { // 1. void -> Product
+        if (amount <= 0) {
+            throw new CustomException(ErrorCode.STOCK_NOT_ENOUGH);
+        }
+        Product product = getProductById(productId);
+        product.decreaseStock(amount);
+
+        return product;
+    }
+
+    @Transactional
+    public Product increaseStock(UUID productId, int amount) { // 1. void -> Product
+        if (amount <= 0) {
+            throw new CustomException(ErrorCode.INVALID_RESTOCK_AMOUNT);
+        }
+        Product product = getProductById(productId);
+        product.increaseStock(amount);
+
+        return product; // 2. 변경된 product 반환
+    }
+
+
+
+    /**
+     * 헬퍼
+     */
     public Product getProductById(UUID productId){
         return productRepository.findByIdAndDeletedFalse(productId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
@@ -107,8 +139,9 @@ public class ProductService {
 
 
     /**
-     * hub get
+     * feign 통신
      */
+
     public void fetchHub(UUID hubId) {
         try {
             hubClient.getHub(hubId);
@@ -117,9 +150,6 @@ public class ProductService {
         }
     }
 
-    /**
-     * company get
-     */
     public void fetchCompany(UUID companyId) {
         try {
             companyClient.getCompany(companyId);

@@ -40,12 +40,10 @@ public class ProductController {
 
     private final ProductService productService;
 
-    // todo: 상품 관리 기본 crud 개발 후 테스트하며 로직 추가 (hub, company 체크 도메인 규칙 등)
-
     /**
      * 상품 등록
      */
-    @Operation(summary = "상품 등록", description = "새로운 상품을 등록합니다. 'MASTER, HUB_MANAGER(담당 허브), COMPANY_MANGER(담당 업체)' 권한이 필요합니다.")
+    @Operation(summary = "상품 등록", description = "새로운 상품을 등록합니다. 'MASTER, HUB_MANAGER', COMPANY_MANGER' 권한이 필요합니다.")
     @PreAuthorize("hasRole('MASTER') or hasRole('HUB_MANAGER') or hasRole('COMPANY_MANAGER')")
     @PostMapping
     public ResponseEntity<ApiResponse<ProductCreateResponse>> createProduct(@RequestBody @Valid ProductCreateRequest request){
@@ -57,7 +55,7 @@ public class ProductController {
     /**
      * 상품 정보 수정
      */
-    @Operation(summary = "상품 수정", description = "상품 정보를 수정합니다. 'MASTER, HUB_MANAGER(담당 허브), COMPANY_MANAGER(담당 업체)' 권한이 필요합니다.")
+    @Operation(summary = "상품 수정", description = "상품 정보를 수정합니다. 'MASTER, HUB_MANAGER, COMPANY_MANAGER' 권한이 필요합니다.")
     @PreAuthorize("hasRole('MASTER') or hasRole('HUB_MANAGER') or hasRole('COMPANY_MANAGER')")
     @PatchMapping("/{productId}")
     public ResponseEntity<ApiResponse<ProductUpdateResponse>> updateProduct(@PathVariable UUID productId,
@@ -70,7 +68,7 @@ public class ProductController {
     /**
      * 상품 삭제
      */
-    @Operation(summary = "상품 삭제", description = "상품을 삭제합니다. 'MASTER, HUB_MANAGER(담당 허브) 권한이 필요합니다.")
+    @Operation(summary = "상품 삭제", description = "상품을 삭제합니다. 'MASTER, HUB_MANAGER' 권한이 필요합니다.")
     @PreAuthorize("hasRole('MASTER') or hasRole('HUB_MANAGER')")
     @DeleteMapping("/{productId}")
     public ResponseEntity<ApiResponse<Void>> deleteProduct(@PathVariable UUID productId,
