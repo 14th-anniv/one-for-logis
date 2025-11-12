@@ -19,11 +19,23 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest
+@SpringBootTest(properties = {
+        "spring.autoconfigure.exclude=",
+        "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",
+        "spring.kafka.listener.auto-startup=true",
+        "spring.kafka.consumer.auto-offset-reset=earliest",
+        "spring.kafka.consumer.key-deserializer=org.apache.kafka.common.serialization.StringDeserializer",
+        "spring.kafka.consumer.value-deserializer=org.springframework.kafka.support.serializer.JsonDeserializer",
+        "spring.kafka.consumer.properties.spring.json.trusted.packages=com.oneforlogis.*",
+        "spring.kafka.consumer.properties.spring.json.value.default.type=com.oneforlogis.delivery.application.event.OrderCreatedMessage",
+        "eureka.client.enabled=false"
+})
 @ActiveProfiles("test")
 @EmbeddedKafka(partitions = 1, topics = {"order.created"})
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class OrderCreatedConsumerIT {
 
     @Autowired

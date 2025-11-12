@@ -67,6 +67,16 @@ public class NotificationRepositoryImpl implements NotificationRepository {
     }
 
     @Override
+    public boolean existsByEventId(String eventId) {
+        return jpaRepository.existsByEventId(eventId);
+    }
+
+    @Override
+    public Optional<Notification> findByEventId(String eventId) {
+        return jpaRepository.findByEventId(eventId);
+    }
+
+    @Override
     public void delete(Notification notification) {
         notification.markAsDeleted("SYSTEM"); // TODO: 실제 사용자 정보로 변경
         jpaRepository.save(notification);

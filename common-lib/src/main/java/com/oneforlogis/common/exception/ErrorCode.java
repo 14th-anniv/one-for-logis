@@ -47,6 +47,9 @@ public enum ErrorCode {
     // Delivery
     DELIVERY_NOT_FOUND(HttpStatus.NOT_FOUND, "배송을 찾을 수 없습니다."),
 
+    INVALID_STATUS_TRANSITION(HttpStatus.BAD_REQUEST, "잘못된 상태 전이 요청입니다."),
+    INVALID_DELIVERY_ASSIGNMENT(HttpStatus.BAD_REQUEST, "배송 담당자는 허브 대기 상태에서만 배정할 수 있습니다."),
+
     // Notification
     NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다."),
     NOTIFICATION_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "알림 발송에 실패했습니다."),
@@ -63,6 +66,14 @@ public enum ErrorCode {
 	NOT_FOUND_NAME(HttpStatus.NOT_FOUND, "아이디가 존재하지 않습니다."),
 	INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다."),
 	NOT_APPROVED_STATUS(HttpStatus.UNAUTHORIZED, "관리자의 승인을 기다려주세요.");
+    // user
+    DUPLICATE_USERNAME(HttpStatus.CONFLICT, "이미 존재하는 아이디입니다."),
+    DUPLICATE_EMAIL(HttpStatus.CONFLICT, "이미 존재하는 이메일입니다."),
+    DUPLICATE_SLACK_ID(HttpStatus.CONFLICT, "이미 존재하는 슬렉 아이디입니다."),
+
+    NOT_FOUND_NAME(HttpStatus.NOT_FOUND, "아이디가 존재하지 않습니다."),
+    INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다."),
+    NOT_APPROVED_STATUS(HttpStatus.UNAUTHORIZED, "관리자의 승인을 기다려주세요.");
 
     private final HttpStatus httpStatus;
     private final String message;

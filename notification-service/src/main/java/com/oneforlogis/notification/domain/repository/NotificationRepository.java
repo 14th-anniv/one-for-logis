@@ -62,6 +62,16 @@ public interface NotificationRepository {
     List<Notification> findBySenderUsername(String senderUsername);
 
     /**
+     * Kafka 이벤트 ID로 알림 존재 여부 확인 (멱등성 체크)
+     */
+    boolean existsByEventId(String eventId);
+
+    /**
+     * Kafka 이벤트 ID로 알림 조회
+     */
+    Optional<Notification> findByEventId(String eventId);
+
+    /**
      * 알림 삭제 (Soft Delete)
      */
     void delete(Notification notification);

@@ -9,6 +9,7 @@ public enum MessageType {
     // 일일 경로 최적화 알림 (Challenge 기능, 매일 06:00)
     DAILY_ROUTE,
 
-    // 사용자가 직접 발송하는 수동 메시지
+    DELIVERY_STATUS_UPDATE, // 사용자가 직접 발송하는 수동 메시지
+
     MANUAL
 }

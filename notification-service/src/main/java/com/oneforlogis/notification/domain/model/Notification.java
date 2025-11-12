@@ -62,6 +62,10 @@ public class Notification extends BaseEntity {
     @Column(name = "reference_id")
     private UUID referenceId;
 
+    // Kafka 이벤트 ID (멱등성 보장용, Kafka 이벤트 기반 알림만 사용)
+    @Column(name = "event_id", unique = true, length = 100)
+    private String eventId;
+
     // 발송 시각
     @Column(name = "sent_at")
     private LocalDateTime sentAt;
@@ -85,7 +89,8 @@ public class Notification extends BaseEntity {
             String recipientName,
             String messageContent,
             MessageType messageType,
-            UUID referenceId
+            UUID referenceId,
+            String eventId
     ) {
         this.id = UUID.randomUUID();
         this.senderType = senderType;
@@ -97,6 +102,7 @@ public class Notification extends BaseEntity {
         this.messageContent = messageContent;
         this.messageType = messageType;
         this.referenceId = referenceId;
+        this.eventId = eventId;
         this.status = MessageStatus.PENDING;
     }
 

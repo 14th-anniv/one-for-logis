@@ -13,7 +13,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Gemini API 키 검증 통합 테스트
  * 실제 Gemini API를 호출하여 API Key의 유효성을 검증합니다.
  */
-@SpringBootTest
+@SpringBootTest(properties = {
+        "spring.kafka.bootstrap-servers=localhost:19092"  // 존재하지 않는 포트 (Kafka 비활성화)
+})
 @ActiveProfiles("test")
 class GeminiApiKeyIntegrationTest {
 

@@ -22,6 +22,8 @@ Notification and AI integration service for 14logis logistics system.
 - PostgreSQL
 - Spring Cloud Eureka Client
 - Spring Cloud OpenFeign
+- Spring Kafka 3.2.2
+- Apache Kafka 3.7.1 (Confluent Platform 7.5.0)
 - Spring WebFlux (WebClient)
 - Resilience4j (Retry with Exponential Backoff)
 - Lombok
@@ -62,6 +64,11 @@ POSTGRES_PORT=5432
 NOTIFICATION_DB=oneforlogis_notification
 POSTGRES_USER=root
 POSTGRES_PASSWORD=your_password
+
+# Kafka Configuration
+KAFKA_BOOTSTRAP_SERVERS=localhost:9092
+ORDER_CREATED_TOPIC=order.created
+DELIVERY_STATUS_CHANGED_TOPIC=delivery.status.changed
 
 # External API Keys
 SLACK_BOT_TOKEN=xoxb-your-slack-bot-token
@@ -172,8 +179,43 @@ curl http://localhost:8761/eureka/apps/NOTIFICATION-SERVICE
 - Docker cURL tests: 기존 8개 수정 + 신규 2개 추가 (총 10개)
 - Test results: 10/10 passed (100% success rate)
 
+**Issue #35** - Kafka 이벤트 소비자 (2025-11-11) ✅ **완료**
+- **Kafka Consumer 구현** (2개)
+  - OrderCreatedConsumer: order.created 토픽 → 주문 알림 발송
+  - DeliveryStatusChangedConsumer: delivery.status.changed 토픽 → 배송 상태 업데이트 알림
+  - @KafkaListener with custom ContainerFactory
+  - 멱등성 처리 (event_id 기반 중복 검증, DB unique constraint)
+  - ErrorHandlingDeserializer + JsonDeserializer 조합
+  - Spring Kafka 3.2.2 with Kafka 3.7.1 (Confluent Platform 7.5.0)
+- **Kafka Configuration**
+  - application.yml: consumer group, deserializer, trusted packages
+  - KafkaConsumerConfig: 토픽별 별도 ContainerFactory (OrderCreated, DeliveryStatusChanged)
+  - TopicProperties: @ConfigurationProperties for topic names
+  - ErrorHandlingDeserializer wrapper (JSON 파싱 에러 처리)
+  - JsonDeserializer delegate with default types
+- **Event DTOs** (record pattern, immutable)
+  - OrderCreatedEvent (eventId, occurredAt, order)
+  - DeliveryStatusChangedEvent (eventId, occurredAt, delivery)
+  - OrderData (15 fields: orderId, ordererInfo, route, receiver, hubManager)
+  - DeliveryData (5 fields: deliveryId, orderId, previousStatus, currentStatus, recipient)
+  - RouteData, ReceiverData, HubManagerData
+- **DB Schema 수정**
+  - MessageType enum: DELIVERY_STATUS_UPDATE 추가
+  - CHECK constraint 업데이트: p_notifications_message_type_check
+  - PostgreSQL ALTER TABLE 실행 (oneforlogis_notification DB)
+- **Docker Compose 통합**
+  - Kafka + Zookeeper 추가 (docker-compose-team.yml)
+  - Dual-port listener: localhost:9092 (external), kafka:29092 (internal)
+  - Environment variables: KAFKA_BOOTSTRAP_SERVERS, topics
+- **Integration Tests**
+  - test-kafka-consumer.sh (4 scenarios: order event, order idempotency, delivery event, delivery idempotency)
+  - End-to-end verification: Kafka → Consumer → Slack → DB
+  - Test results: 4/4 passed (멱등성 검증 성공)
+  - Real Slack channel integration (C09QY22AMEE)
+- **Documentation**: docs/review/issue-35-notification-kafka-consumer.md (updated)
+
 ### 🚧 Pending
 
-- **Issue #35**: Kafka 이벤트 소비자 (order-created, delivery-status-changed)
+- **Issue #76**: Codex 리스크 개선 (7 items: 통합 테스트 분리, NPE 위험, Slack 실패 응답 등)
 - **Issue #36**: Daily route optimization scheduler (Challenge)
 - **DTO Refactoring**: presentation → application 계층 이동 (튜터 권장사항)

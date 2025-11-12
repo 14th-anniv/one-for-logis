@@ -17,11 +17,13 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     show-sql: true
 
 eureka:
   client:
+    enabled: false
     register-with-eureka: true
     fetch-registry: true
     service-url:
