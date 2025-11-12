@@ -14,6 +14,7 @@ public class SecurityConfig extends SecurityConfigBase {
     protected void configureAuthorization(
             AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
         auth
-                .requestMatchers("/api/v1/**").permitAll();
+                .requestMatchers("/api/v1/internal/**").permitAll()
+                .requestMatchers("/api/v1/**").authenticated();
     }
 }
