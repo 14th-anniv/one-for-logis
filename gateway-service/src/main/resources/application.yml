@@ -5,12 +5,60 @@ spring:
   profiles:
     active: local
 
+  # spring.data.redis가 없어서 RedisConfig에서 오류 발생했던 것. (25.11.11)
+  data:
+    redis:
+      host: localhost # 또는 컨테이너 이름
+      port: 6379
+      password:
+
+  main:
+    web-application-type: reactive # Spring 애플리케이션이 리액티브 웹 애플리케이션으로 설정됨
+    allow-bean-definition-overriding: true  # 동일한 이름을 가진 Bean이 여러 곳에 존재할 가능성 때문에 true로 설정 (11.11)
+  application:
+    name: gateway-service # 애플리케이션 이름을 'gateway-service'로 설정
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true # 서비스 디스커버리를 통해 동적으로 라우트를 생성하도록 설정
+      routes:
+        - id: company-service
+          uri: lb://company-service
+          predicates:
+            - Path=/api/v1/companies/**
+
+        - id: hub-service
+          uri: lb://hub-service
+          predicates:
+            - Path=/api/v1/hubs/**
+
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/v1/notifications/**
+
+        - id: order-service
+          uri: lb://order-service
+          predicates:
+            - Path=/api/v1/orders/**
+
+        - id: product-service
+          uri: lb://product-service
+          predicates:
+            - Path=/api/v1/products/**
+
+        - id: user-service # 라우트 식별자
+          uri: lb://user-service # 'users-service'라는 이름으로 로드 밸런싱된 서비스로 라우팅
+          predicates:
+            - Path=/api/v1/users/** # /users/** 경로로 들어오는 요청을 이 라우트로 처리
+
 eureka:
   client:
-    register-with-eureka: false
+    register-with-eureka: true  # false가 아니라 true로 둬야 함. (11.11)
     fetch-registry: true
     service-url:
-      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+      defaultZone: http://localhost:8761/eureka   # 끝에 /는 없어야 함 (25.11.11)
 
 management:
   endpoints:
@@ -22,3 +70,13 @@ logging:
   level:
     org.springframework.cloud.gateway: INFO
     org.springframework.web: INFO
+
+server:
+  port: 8000
+
+jwt:
+  secret:
+    key:
+
+  admin:
+    token:
