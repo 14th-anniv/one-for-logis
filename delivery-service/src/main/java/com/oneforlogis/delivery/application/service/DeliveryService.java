@@ -2,10 +2,10 @@ package com.oneforlogis.delivery.application.service;
 
 import com.oneforlogis.common.exception.CustomException;
 import com.oneforlogis.common.exception.ErrorCode;
-import com.oneforlogis.delivery.application.dto.DeliveryAssignRequest;
-import com.oneforlogis.delivery.application.dto.DeliveryStatusUpdateRequest;
-import com.oneforlogis.delivery.application.dto.DeliveryResponse;
-import com.oneforlogis.delivery.application.dto.DeliverySearchCond;
+import com.oneforlogis.delivery.application.dto.request.DeliveryAssignRequest;
+import com.oneforlogis.delivery.application.dto.request.DeliverySearchCond;
+import com.oneforlogis.delivery.application.dto.request.DeliveryStatusUpdateRequest;
+import com.oneforlogis.delivery.application.dto.response.DeliveryResponse;
 import com.oneforlogis.delivery.application.event.OrderCreatedMessage;
 import com.oneforlogis.delivery.domain.model.Delivery;
 import com.oneforlogis.delivery.domain.model.DeliveryStatus;
