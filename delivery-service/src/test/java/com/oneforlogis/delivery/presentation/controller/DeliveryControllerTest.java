@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -14,9 +15,13 @@ import com.oneforlogis.common.exception.CustomException;
 import com.oneforlogis.common.exception.ErrorCode;
 import com.oneforlogis.delivery.application.dto.DeliveryAssignRequest;
 import com.oneforlogis.delivery.application.dto.DeliveryResponse;
+import com.oneforlogis.delivery.application.dto.DeliveryRouteRequest;
+import com.oneforlogis.delivery.application.dto.DeliveryRouteResponse;
 import com.oneforlogis.delivery.application.dto.DeliverySearchCond;
 import com.oneforlogis.delivery.application.dto.DeliveryStatusUpdateRequest;
+import com.oneforlogis.delivery.application.service.DeliveryRouteService;
 import com.oneforlogis.delivery.application.service.DeliveryService;
+import com.oneforlogis.delivery.domain.model.DeliveryRouteStatus;
 import com.oneforlogis.delivery.presentation.advice.DeliveryExceptionHandler;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,7 +43,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @Import(DeliveryExceptionHandler.class)
 @AutoConfigureMockMvc(addFilters = false)
-@WebMvcTest(controllers = DeliveryController.class)
+@WebMvcTest(controllers = {DeliveryController.class, DeliveryRouteController.class})
 class DeliveryControllerTest {
 
     @Autowired
@@ -46,9 +51,12 @@ class DeliveryControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
-  
+
     @MockBean
     private DeliveryService deliveryService;
+
+    @MockBean
+    private DeliveryRouteService deliveryRouteService;
 
     private DeliveryResponse buildDeliveryResponse(UUID deliveryId) {
         return new DeliveryResponse(
@@ -184,7 +192,7 @@ class DeliveryControllerTest {
                 .andExpect(jsonPath("$.content", hasSize(0)))
                 .andExpect(jsonPath("$.totalElements").value(0));
     }
-  
+
 
     @Test
     @DisplayName("배송 상태 변경 성공")
@@ -277,5 +285,67 @@ class DeliveryControllerTest {
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.deliveryStaffId", nullValue()));
+    }
+
+    @Test
+    @DisplayName("배송 경로 생성 성공")
+    void createRoute_success() throws Exception {
+        UUID deliveryId = UUID.randomUUID();
+
+        String requestBody = """
+                {
+                    "routeStatus": "DEPARTED_FROM_HUB",
+                    "eventAt": "2025-01-01T10:05:00",
+                    "hubId": "22222222-2222-2222-2222-222222222222",
+                    "latitude": 37.5665,
+                    "longitude": 126.978,
+                    "remark": "허브 출발"
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/deliveries/" + deliveryId + "/routes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    @DisplayName("배송 경로 생성 실패 - 허브 ID가 필요한 상태인데 누락됨")
+    void createRoute_missingHub_whenRequired() throws Exception {
+        // given
+        UUID deliveryId = UUID.randomUUID();
+        DeliveryRouteRequest req = new DeliveryRouteRequest(
+                DeliveryRouteStatus.ARRIVED_AT_HUB,
+                LocalDateTime.of(2025, 1, 1, 10, 30),
+                null,
+                37.5665,
+                126.9780,
+                "허브 도착"
+        );
+
+        Mockito.when(
+                        deliveryRouteService.appendEvent(eq(deliveryId), any(DeliveryRouteRequest.class)))
+                .thenThrow(
+                        new CustomException(ErrorCode.INVALID_STATUS_TRANSITION));
+
+        // when & then
+        mockMvc.perform(post("/api/v1/deliveries/{deliveryId}/routes", deliveryId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().is4xxClientError());
+    }
+
+    private DeliveryRouteResponse sampleResponse(UUID deliveryId, int seq) {
+        return new DeliveryRouteResponse(
+                UUID.randomUUID(),     // routeId
+                deliveryId,            // deliveryId
+                seq,                   // routeSeq
+                DeliveryRouteStatus.DEPARTED_FROM_HUB, // routeStatus
+                "22222222-2222-2222-2222-222222222222", // hubId (String)
+                37.5665,               // latitude
+                126.9780,              // longitude
+                LocalDateTime.of(2025, 1, 1, 10, 5),    // eventAt
+                "허브 출발"             // remark
+        );
     }
 }
