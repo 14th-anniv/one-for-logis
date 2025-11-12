@@ -8,6 +8,7 @@ server:
 
 eureka:
   client:
+    enabled: true
     register-with-eureka: false
     fetch-registry: false
   server:
@@ -22,6 +23,3 @@ management:
 logging:
   level:
     org.springframework.cloud.netflix.eureka: INFO
-
-server:
-  port: 8761

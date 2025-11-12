@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: delivery-service
+  config:
+    import: optional:file:.env[.properties]
 
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${DELIVERY_DB}
@@ -28,13 +30,12 @@ spring:
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
-      - org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration
+#      - org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration
 
 eureka:
   client:
-    enabled: false
-    register-with-eureka: false
-    fetch-registry: false
+    register-with-eureka: true
+    fetch-registry: true
     service-url:
       defaultZone: ${EUREKA_SERVER_URL:http://eureka-server:8761/eureka/}
 
@@ -49,3 +50,9 @@ logging:
     org.apache.kafka.clients.NetworkClient: ERROR
     com.netflix.discovery: WARN
     org.springframework: INFO
+
+springdoc:
+  swagger-ui:
+    path: /api/v1/deliveries/
+  api-docs:
+    path: /api/v1/deliveries/v3/api-docs

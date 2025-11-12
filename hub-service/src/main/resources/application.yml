@@ -2,6 +2,8 @@ server:
   port: 8200
 
 spring:
+  application:
+    name: hub-service
   config:
     import: optional:file:.env[.properties]
   profiles:
@@ -42,3 +44,9 @@ logging:
   level:
     org.springframework: INFO
     org.springframework.cache: TRACE
+
+springdoc:
+  swagger-ui:
+    path: /api/v1/hubs/
+  api-docs:
+    path: /api/v1/hubs/v3/api-docs
