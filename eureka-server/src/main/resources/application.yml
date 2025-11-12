@@ -22,3 +22,6 @@ management:
 logging:
   level:
     org.springframework.cloud.netflix.eureka: INFO
+
+server:
+  port: 8761

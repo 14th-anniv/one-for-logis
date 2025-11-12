@@ -1,12 +1,17 @@
+server:
+  port: 8100
+
 spring:
   config:
     import: optional:file:.env[.properties]
   profiles:
     active: local
+
+
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${USER_DB}
-    username: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
+    url: jdbc:postgresql://localhost:5432/oneforlogis_user
+    username: postgres
+    password:
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -17,12 +22,21 @@ spring:
         format_sql: true
     show-sql: true
 
+  data:
+    redis:
+      host: localhost # 또는 컨테이너 이름
+      port: 6379
+      password:
+
+  application:
+    name: user-service
+
 eureka:
   client:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+      defaultZone: http://localhost:8761/eureka/
 
 management:
   endpoints:
@@ -30,6 +44,21 @@ management:
       exposure:
         include: health,info
 
+
+
 logging:
   level:
     org.springframework: INFO
+
+
+
+server:
+  port: 8100
+
+
+jwt:
+  secret:
+    key:
+
+  admin:
+    token:

@@ -3,6 +3,8 @@ package com.oneforlogis.notification.domain.repository;
 import com.oneforlogis.notification.domain.model.MessageStatus;
 import com.oneforlogis.notification.domain.model.MessageType;
 import com.oneforlogis.notification.domain.model.Notification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +32,11 @@ public interface NotificationRepository {
     List<Notification> findAll();
 
     /**
+     * 모든 알림 페이징 조회 (Soft Delete 제외)
+     */
+    Page<Notification> findAll(Pageable pageable);
+
+    /**
      * 상태별 알림 조회
      */
     List<Notification> findByStatus(MessageStatus status);
@@ -53,6 +60,16 @@ public interface NotificationRepository {
      * 발신자 사용자명으로 알림 조회
      */
     List<Notification> findBySenderUsername(String senderUsername);
+
+    /**
+     * Kafka 이벤트 ID로 알림 존재 여부 확인 (멱등성 체크)
+     */
+    boolean existsByEventId(String eventId);
+
+    /**
+     * Kafka 이벤트 ID로 알림 조회
+     */
+    Optional<Notification> findByEventId(String eventId);
 
     /**
      * 알림 삭제 (Soft Delete)

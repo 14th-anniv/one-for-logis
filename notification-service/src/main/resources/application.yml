@@ -1,3 +1,6 @@
+server:
+  port: ${NOTIFICATION_SERVICE_PORT:8700}
+
 spring:
   application:
     name: notification-service
@@ -33,8 +36,15 @@ spring:
       circuitbreaker:
         enabled: true
 
-server:
-  port: ${NOTIFICATION_SERVICE_PORT:8700}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: notification-service
+      auto-offset-reset: latest
+
+topics:
+  order-created: ${ORDER_CREATED_TOPIC:order.created}
+  delivery-status-changed: ${DELIVERY_STATUS_CHANGED_TOPIC:delivery.status.changed}
 
 management:
   endpoints:
@@ -49,3 +59,10 @@ eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_SERVER_URL}
+
+# External API Configuration
+external-api:
+  slack:
+    bot-token: ${SLACK_BOT_TOKEN}
+  gemini:
+    api-key: ${GEMINI_API_KEY}

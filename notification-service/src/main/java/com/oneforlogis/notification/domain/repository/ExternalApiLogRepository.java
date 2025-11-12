@@ -2,6 +2,8 @@ package com.oneforlogis.notification.domain.repository;
 
 import com.oneforlogis.notification.domain.model.ApiProvider;
 import com.oneforlogis.notification.domain.model.ExternalApiLog;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,9 +32,19 @@ public interface ExternalApiLogRepository {
     List<ExternalApiLog> findAll();
 
     /**
+     * 모든 API 로그 페이징 조회
+     */
+    Page<ExternalApiLog> findAll(Pageable pageable);
+
+    /**
      * API 제공자별 로그 조회
      */
     List<ExternalApiLog> findByApiProvider(ApiProvider apiProvider);
+
+    /**
+     * API 제공자별 로그 페이징 조회
+     */
+    Page<ExternalApiLog> findByApiProvider(ApiProvider apiProvider, Pageable pageable);
 
     /**
      * 성공 여부로 로그 조회
@@ -43,6 +55,11 @@ public interface ExternalApiLogRepository {
      * 알림 메시지 ID로 관련 API 로그 조회
      */
     List<ExternalApiLog> findByMessageId(UUID messageId);
+
+    /**
+     * 알림 메시지 ID로 관련 API 로그 페이징 조회
+     */
+    Page<ExternalApiLog> findByMessageId(UUID messageId, Pageable pageable);
 
     /**
      * 특정 기간 내 API 로그 조회

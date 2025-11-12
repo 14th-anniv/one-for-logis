@@ -6,10 +6,10 @@ import com.oneforlogis.common.exception.ErrorCode;
 import com.oneforlogis.hub.domain.model.Hub;
 import com.oneforlogis.hub.domain.repository.HubRepository;
 import com.oneforlogis.hub.infrastructure.cache.HubCacheService;
-import com.oneforlogis.hub.presentation.request.HubCreateRequest;
-import com.oneforlogis.hub.presentation.request.HubUpdateRequest;
+import com.oneforlogis.hub.presentation.request.HubRequest;
 import com.oneforlogis.hub.presentation.response.HubResponse;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -27,7 +27,7 @@ public class HubService {
     private final HubCacheService hubCacheService;
 
     @Transactional
-    public HubResponse createHub(HubCreateRequest request) {
+    public HubResponse createHub(HubRequest request) {
         Hub hub = Hub.create(request);
         hubRepository.save(hub);
         HubResponse response = HubResponse.from(hub);
@@ -36,7 +36,7 @@ public class HubService {
     }
 
     @Transactional
-    public HubResponse updateHub(UUID hubId, HubUpdateRequest request) {
+    public HubResponse updateHub(UUID hubId, HubRequest request) {
         Hub hub = hubRepository.findById(hubId)
                 .orElseThrow(() -> new CustomException(ErrorCode.HUB_NOT_FOUND));
         if (hub.isDeleted()) throw new CustomException(ErrorCode.HUB_DELETED);
@@ -91,5 +91,26 @@ public class HubService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Hub> pageData = hubRepository.findByDeletedFalse(pageable);
         return PageResponse.fromPage(pageData.map(HubResponse::from));
+    }
+
+    public Map<UUID, HubResponse> getHubsBulk(List<UUID> hubIds) {
+        if (hubIds == null || hubIds.isEmpty()) throw new CustomException(ErrorCode.HUB_INVALID_REQUEST);
+
+        Map<UUID, HubResponse> cached = hubCacheService.getHubsBulk(hubIds);
+
+        List<UUID> missingIds = hubIds.stream()
+                .filter(id -> !cached.containsKey(id))
+                .toList();
+
+        if (!missingIds.isEmpty()) {
+            List<Hub> missingHubs = hubRepository.findAllByIdInAndDeletedFalse(missingIds);
+            missingHubs.forEach(hub -> {
+                HubResponse response = HubResponse.from(hub);
+                cached.put(hub.getId(), response);
+                hubCacheService.saveHubCache(response);
+            });
+        }
+
+        return cached;
     }
 }
