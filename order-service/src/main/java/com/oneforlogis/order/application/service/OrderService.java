@@ -7,6 +7,8 @@ import com.oneforlogis.order.domain.model.Order;
 import com.oneforlogis.order.domain.model.OrderItem;
 import com.oneforlogis.order.domain.model.OrderStatus;
 import com.oneforlogis.order.domain.repository.OrderRepository;
+import com.oneforlogis.order.infrastructure.external.UserClient;
+import com.oneforlogis.order.infrastructure.external.dto.UserResponse;
 import com.oneforlogis.order.presentation.request.OrderCancelRequest;
 import com.oneforlogis.order.presentation.request.OrderCreateRequest;
 import com.oneforlogis.order.presentation.request.OrderStatusChangeRequest;
@@ -40,11 +42,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final UserClient userClient;
 
     @Transactional
     public OrderCreateResponse createOrder(OrderCreateRequest request) {
         // TODO: 추후 JWT에서 userId 추출하도록 변경
+
         Long userId = 1L;
+
+        UserResponse user = userClient.getUserById(userId); // 사용자 존재 여부 확인
+
 
         // OrderItem 생성
         // TODO: 추후 product-service에서 실제 unitPrice 조회하도록 변경
