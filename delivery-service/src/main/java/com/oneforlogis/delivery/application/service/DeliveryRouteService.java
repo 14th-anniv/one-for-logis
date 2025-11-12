@@ -10,7 +10,9 @@ import com.oneforlogis.delivery.domain.model.DeliveryRoute;
 import com.oneforlogis.delivery.domain.model.DeliveryRouteStatus;
 import com.oneforlogis.delivery.domain.repository.DeliveryRepository;
 import com.oneforlogis.delivery.domain.repository.DeliveryRouteRepository;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,5 +74,18 @@ public class DeliveryRouteService {
     private boolean requiresHubId(DeliveryRouteStatus status) {
         return status == DeliveryRouteStatus.ARRIVED_AT_HUB ||
                 status == DeliveryRouteStatus.DEPARTED_FROM_HUB;
+    }
+
+    public List<DeliveryRouteResponse> getRoutes(UUID deliveryId) {
+        if (!deliveryRepository.existsById(deliveryId)) {
+            throw new CustomException(ErrorCode.DELIVERY_NOT_FOUND);
+        }
+
+        List<DeliveryRoute> routes =
+                deliveryRouteRepository.findByDeliveryIdOrderByRouteSeqAsc(deliveryId);
+
+        return routes.stream()
+                .map(DeliveryRouteResponse::from)
+                .collect(Collectors.toList());
     }
 }
