@@ -89,24 +89,35 @@ function run_test() {
 # ============================================
 # Windows 환경: PowerShell로 UUID 생성
 ORDER_ID=$(powershell -Command "[guid]::NewGuid().ToString()")
+
+# 방법 1: 영문 데이터 (현재 사용 중 - UTF-8 문제 없음)
 ORDER_DATA=$(cat <<EOF
 {
   "orderId": "$ORDER_ID",
-  "orderSummary": "주문자: 테스트업체",
-  "supplierCompanyName": "공급업체명",
-  "receiverCompanyName": "수령업체명",
-  "productSummary": "상품: 테스트상품 x 10",
-  "deliveryRequest": "빠른 배송 요청",
-  "departureHubName": "경기남부 허브",
-  "transitHubNames": ["대전 허브", "대구 허브"],
-  "arrivalHubName": "부산 허브",
-  "destinationAddress": "부산시 해운대구",
-  "deliveryPersonInfo": "배송담당: 홍길동",
-  "recipientSlackId": "U123456",
-  "recipientName": "부산허브 관리자"
+  "ordererInfo": "Test Orderer / test@example.com",
+  "requestingCompanyName": "Supplier Company",
+  "receivingCompanyName": "Receiver Company",
+  "productInfo": "Product: Test Item x 10",
+  "requestDetails": "Please deliver fast",
+  "departureHub": "Gyeonggi South Hub",
+  "waypoints": ["Daejeon Hub", "Daegu Hub"],
+  "destinationHub": "Busan Hub",
+  "destinationAddress": "Haeundae-gu, Busan",
+  "deliveryPersonInfo": "Delivery Person: Hong",
+  "recipientSlackId": "C09QY22AMEE",
+  "recipientName": "Busan Hub Manager"
 }
 EOF
 )
+
+# 방법 2: 한글 데이터 사용 (JSON 파일에서 로드)
+# ORDER_DATA=$(cat "$SCRIPT_DIR/test-data-order-korean.json" | sed "s/550e8400-e29b-41d4-a716-446655440000/$ORDER_ID/")
+
+# 방법 3: 한글 heredoc + 한 줄 압축 (Kafka 패턴)
+# ORDER_DATA=$(cat <<EOF | tr -d '\n' | tr -d '\r'
+# {"orderId":"$ORDER_ID","ordererInfo":"주문자: 테스트업체 / test@example.com","requestingCompanyName":"공급업체명","receivingCompanyName":"수령업체명","productInfo":"상품: 테스트상품 x 10","requestDetails":"빠른 배송 요청","departureHub":"경기남부 허브","waypoints":["대전 허브","대구 허브"],"destinationHub":"부산 허브","destinationAddress":"부산시 해운대구","deliveryPersonInfo":"배송담당: 홍길동","recipientSlackId":"C09QY22AMEE","recipientName":"부산허브 관리자"}
+# EOF
+# )
 
 run_test \
     "주문 알림 발송 (POST /order)" \
@@ -114,7 +125,7 @@ run_test \
     "$BASE_URL/order" \
     "$ORDER_DATA" \
     "" \
-    "200"
+    "201"
 
 # ============================================
 # Test 1-1: 실제 Slack 채널 발송 테스트 (Optional)
@@ -154,8 +165,8 @@ run_test \
 MANUAL_DATA=$(cat <<EOF
 {
   "recipientSlackId": "U789012",
-  "recipientName": "수신자 이름",
-  "messageContent": "테스트 메시지입니다."
+  "recipientName": "Receiver Name",
+  "messageContent": "This is a test message."
 }
 EOF
 )
