@@ -2,18 +2,25 @@ package com.oneforlogis.user.presentation.controller;
 
 import java.util.UUID;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.oneforlogis.common.api.ApiResponse;
+import com.oneforlogis.common.api.PageResponse;
 import com.oneforlogis.common.security.UserPrincipal;
 import com.oneforlogis.user.application.service.UserService;
+import com.oneforlogis.user.domain.model.User;
 import com.oneforlogis.user.global.util.JwtUtil;
 import com.oneforlogis.user.presentation.request.UserLoginRequest;
 import com.oneforlogis.user.presentation.request.UserRoleUpdateRequest;
@@ -81,10 +88,28 @@ public class UserController {
 		return ApiResponse.success("권한 변경에 성공하였습니다.");
 	}
 
-	// @Operation(summary = "권한 설정", description = "최종 관리자가 회원의 권한을 설정합니다.")
-	// @PreAuthorize("hasRole('MASTER')")
-	// @PatchMapping("/{userId}/role"){
-	// 	public ApiResponse<Void> updateRole(@PathVariable UserRoleUpdateRequest){
-	//
-	// 	}
+	@Operation(summary = "마이페이지 조회", description = "자기 자신의 정보를 조회합니다.")
+	@GetMapping("/me")
+	public ApiResponse<User> getMyPage(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+
+		return ApiResponse.success(userService.getMyPage(userPrincipal.id()));
+	}
+
+	@Operation(summary = "관리자 전용 조회", description = "MASTER 관리자만 모든 데이터를 조회합니다.")
+	@PreAuthorize("hasRole('MASTER')")
+	@GetMapping("/admin")
+	public ApiResponse<PageResponse<User>> adminSearch(
+		@RequestParam(required = false) String keyword,
+		@RequestParam(defaultValue = "0") int page,
+		@RequestParam(defaultValue = "10") int size,
+		@RequestParam(defaultValue = "createdAt") String sortBy,  // 정렬 기준 컬럼
+		@RequestParam(defaultValue = "desc") String direction,    // 오름차순 or 내림차순 정렬
+		@AuthenticationPrincipal UserPrincipal userPrincipal
+	){
+		// asc가 참이면 오름차순, 거짓이면 내림차순 정렬
+		Sort sort = direction.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+		Pageable pageable = PageRequest.of(page, size, sort);
+		PageResponse<User> response = userService.adminSearch(keyword, pageable);
+		return ApiResponse.success(response);
+	}
 }

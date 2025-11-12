@@ -4,15 +4,20 @@ import java.time.Duration;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import com.oneforlogis.common.api.ApiResponse;
+import com.oneforlogis.common.api.PageResponse;
 import com.oneforlogis.common.exception.CustomException;
 import com.oneforlogis.common.exception.ErrorCode;
 import com.oneforlogis.common.model.Role;
-import com.oneforlogis.user.domain.model.Status;
 import com.oneforlogis.user.domain.model.User;
 import com.oneforlogis.user.domain.repository.UserRepository;
 import com.oneforlogis.user.global.util.JwtUtil;
@@ -142,6 +147,21 @@ public class UserService {
 		);
 
 		user.updateRole(request.role());
+	}
+
+	// 마이페이지 조회
+	public User getMyPage(UUID id) {
+		return userRepository.findByIdAndDeletedAtIsNull(id).orElseThrow(
+			() -> new CustomException(ErrorCode.NOT_FOUND_NAME)
+		);
+	}
+
+	// 관리자 전용 조회
+	@Cacheable(value = "adminUsers", key = "#keyword + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort")
+	public PageResponse<User> adminSearch(String keyword, Pageable pageable) {
+		Page<User> userPage = userRepository.searchAllIncludingDeleted(keyword, pageable);
+
+		return PageResponse.fromPage(userPage);
 	}
 
 	// 이전 토큰 무효화
