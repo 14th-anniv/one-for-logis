@@ -1,0 +1,127 @@
+package com.oneforlogis.company.application;
+
+import com.oneforlogis.common.exception.CustomException;
+import com.oneforlogis.common.exception.ErrorCode;
+import com.oneforlogis.company.application.dto.request.CompanyCreateRequest;
+import com.oneforlogis.company.application.dto.request.CompanyUpdateRequest;
+import com.oneforlogis.company.application.dto.response.CompanyCreateResponse;
+import com.oneforlogis.company.application.dto.response.CompanyDetailResponse;
+import com.oneforlogis.company.application.dto.response.CompanyUpdateResponse;
+import com.oneforlogis.company.domain.model.Company;
+import com.oneforlogis.company.domain.model.CompanyType;
+import com.oneforlogis.company.domain.repository.CompanyRepository;
+import com.oneforlogis.company.infrastructure.client.HubClient;
+import com.oneforlogis.company.infrastructure.client.dto.HubResponse;
+import feign.FeignException;
+import java.util.List;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Slf4j
+@RequiredArgsConstructor
+@Service
+@Transactional(readOnly = true)
+public class CompanyService {
+
+    private final HubClient hubClient;
+    private final CompanyRepository companyRepository;
+
+    // todo: hub 연결 후 검증 로직 추가
+
+    // 업체 등록
+    @Transactional
+    public CompanyCreateResponse createCompany(CompanyCreateRequest request){
+
+        HubResponse hub = fetchHub(request.hubId());
+        log.info("등록하는 업체 허브 ID: {} ({})", hub.name(), hub.id());
+        Company company = Company.createCompany(
+                request.name(),
+                CompanyType.from(request.type()),
+                request.hubId(),
+                request.address()
+        );
+
+        Company savedCompany = companyRepository.save(company);
+        return CompanyCreateResponse.from(savedCompany);
+    }
+
+    // 업체 수정
+    @Transactional
+    public CompanyUpdateResponse updateCompany(UUID companyId, CompanyUpdateRequest request){
+
+        Company company = getCompanyById(companyId);
+
+        if (request.name() != null && !request.name().isBlank()) {
+            company.updateName(request.name());
+        }
+        if (request.type() != null && !request.type().isBlank()) {
+            company.updateType(CompanyType.from(request.type()));
+        }
+        if (request.address() != null) {
+            company.updateAddress(request.address());
+        }
+
+        return CompanyUpdateResponse.from(company);
+    }
+
+    // 업체 삭제
+    @Transactional
+    public void deleteCompany(UUID companyId, String userName){
+        Company company = getCompanyById(companyId);
+        log.info("service - del company userName: {}", userName);
+        company.deleteCompany(userName);
+    }
+
+    // 업체 단건 조회
+    public CompanyDetailResponse getCompanyDetail(UUID companyId){
+        Company company = getCompanyById(companyId);
+        return CompanyDetailResponse.from(company);
+    }
+
+    // 업체 조회 (전체 + 이름 search)
+    public Page<Company> getCompanies(String companyName, int page, int size, String sortBy, boolean isAsc) {
+        Pageable pageable = createPageable(page, size, sortBy, isAsc);
+
+        if (companyName == null || companyName.isBlank()) {
+            return companyRepository.findByDeletedFalse(pageable);
+        }
+        return companyRepository.findByNameContainingAndDeletedFalse(companyName, pageable);
+    }
+
+
+    /**
+     * 코드 헬퍼 메서드
+     */
+
+    // 업체 엔티티 조회
+    public Company getCompanyById(UUID companyId){
+        return companyRepository.findByIdAndDeletedFalse(companyId)
+                .orElseThrow(() -> new CustomException(ErrorCode.COMPANY_NOT_FOUND));
+    }
+
+    // 페이징 헬퍼
+    private Pageable createPageable(int page, int size, String sortBy, boolean isAsc) {
+        int validatedSize = List.of(10, 30, 50).contains(size) ? size : 10;
+        int validatedPage = Math.max(page, 0); // 무조건 0부터 유효 (음수 방지 코드)
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        return PageRequest.of(validatedPage, validatedSize, Sort.by(direction, sortBy));
+    }
+
+    /**
+     * hub get
+     */
+    public HubResponse fetchHub(UUID hubId) {
+        try {
+            return hubClient.getHub(hubId).data();
+        } catch (FeignException.NotFound e) {
+            throw new CustomException(ErrorCode.HUB_NOT_FOUND);
+        }
+    }
+}

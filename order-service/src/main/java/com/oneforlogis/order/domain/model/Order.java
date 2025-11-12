@@ -106,7 +106,7 @@ public class Order extends BaseEntity {
         if (orderItems == null || orderItems.isEmpty()) {
             throw new IllegalArgumentException("주문 항목은 최소 1개 이상 필요합니다.");
         }
-        
+
         String orderNo = generateOrderNo();
         Order order = Order.builder()
                 .orderNo(orderNo)
@@ -177,17 +177,17 @@ public class Order extends BaseEntity {
         if (this.status == null) {
             throw new IllegalStateException("주문 상태가 null입니다. 상태 변경이 불가능합니다.");
         }
-        
+
         // 상태 변경 전 현재 상태를 명시적으로 저장
         OrderStatus currentStatus = this.status;
-        
+
         // OrderStatusHistory 생성 (Builder 패턴 사용)
         OrderStatusHistory history = OrderStatusHistory.builder()
                 .fromStatus(currentStatus)
                 .toStatus(newStatus)
                 .reason(reason != null && !reason.isBlank() ? reason : "상태 변경")
                 .build();
-        
+
         this.addStatusHistory(history);
         this.status = newStatus;
     }

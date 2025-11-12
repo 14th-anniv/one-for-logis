@@ -54,7 +54,7 @@ public class OrderItem extends BaseEntity {
         if (unitPrice.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("단가는 0 이상이어야 합니다.");
         }
-        
+
         this.productId = productId;
         this.productName = productName;
         this.unitPrice = unitPrice;
@@ -73,7 +73,7 @@ public class OrderItem extends BaseEntity {
     /**
      * OrderItem 생성 정적 팩토리 메서드
      */
-    public static OrderItem from(UUID productId, String productName, 
+    public static OrderItem from(UUID productId, String productName,
                                  BigDecimal unitPrice, Integer quantity) {
         // Builder 대신 생성자를 직접 호출하여 lineTotal이 자동 계산되도록 함
         return new OrderItem(productId, productName, unitPrice, quantity);

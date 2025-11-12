@@ -81,15 +81,29 @@ public class ExternalApiLog {
             ApiProvider apiProvider,
             String apiMethod,
             Map<String, Object> requestData,
+            Map<String, Object> responseData,
+            Integer httpStatus,
+            Boolean isSuccess,
+            String errorCode,
+            String errorMessage,
+            Long durationMs,
+            BigDecimal cost,
+            LocalDateTime calledAt,
             UUID messageId
     ) {
         this.id = UUID.randomUUID();
         this.apiProvider = apiProvider;
         this.apiMethod = apiMethod;
         this.requestData = requestData;
+        this.responseData = responseData;
+        this.httpStatus = httpStatus;
+        this.isSuccess = isSuccess != null ? isSuccess : false;
+        this.errorCode = errorCode;
+        this.errorMessage = errorMessage;
+        this.durationMs = durationMs;
+        this.cost = cost;
+        this.calledAt = calledAt != null ? calledAt : LocalDateTime.now();
         this.messageId = messageId;
-        this.calledAt = LocalDateTime.now();
-        this.isSuccess = false; // 기본값
     }
 
     /**
