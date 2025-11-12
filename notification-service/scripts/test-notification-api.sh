@@ -51,12 +51,12 @@ function run_test() {
     echo -e "${BLUE}[TEST $TOTAL_TESTS] $test_name${NC}" | tee -a $RESULT_FILE
     echo "Request: $method $url" | tee -a $RESULT_FILE
 
-    # cURL 실행
+    # cURL 실행 (UTF-8 인코딩 명시)
     if [ -n "$data" ]; then
         response=$(curl -s -w "\n%{http_code}" -X $method "$url" \
-            -H "Content-Type: application/json" \
+            -H "Content-Type: application/json; charset=utf-8" \
             $headers \
-            -d "$data")
+            --data-binary "$data")
     else
         response=$(curl -s -w "\n%{http_code}" -X $method "$url" \
             $headers)

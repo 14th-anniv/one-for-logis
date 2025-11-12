@@ -24,6 +24,19 @@ spring:
     console:
       enabled: true
 
+  kafka:
+    bootstrap-servers: ${spring.embedded.kafka.brokers}
+    consumer:
+      group-id: notification-service-test
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+topics:
+  order-created: order.created
+  delivery-status-changed: delivery.status.changed
+
 # Eureka 비활성화 (테스트 환경)
 eureka:
   client:

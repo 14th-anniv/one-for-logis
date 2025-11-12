@@ -36,6 +36,16 @@ spring:
       circuitbreaker:
         enabled: true
 
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: notification-service
+      auto-offset-reset: latest
+
+topics:
+  order-created: ${ORDER_CREATED_TOPIC:order.created}
+  delivery-status-changed: ${DELIVERY_STATUS_CHANGED_TOPIC:delivery.status.changed}
+
 management:
   endpoints:
     web:
