@@ -150,6 +150,7 @@ public class UserService {
 	}
 
 	// 마이페이지 조회
+	@Transactional(readOnly = true)
 	public User getMyPage(UUID id) {
 		return userRepository.findByIdAndDeletedAtIsNull(id).orElseThrow(
 			() -> new CustomException(ErrorCode.NOT_FOUND_NAME)
@@ -157,6 +158,7 @@ public class UserService {
 	}
 
 	// 관리자 전용 조회
+	@Transactional(readOnly = true)
 	@Cacheable(value = "adminUsers", key = "#keyword + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort")
 	public PageResponse<User> adminSearch(String keyword, Pageable pageable) {
 		Page<User> userPage = userRepository.searchAllIncludingDeleted(keyword, pageable);
