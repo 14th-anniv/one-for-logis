@@ -1,15 +1,24 @@
 package com.oneforlogis.user.presentation.controller;
 
+import java.util.UUID;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.oneforlogis.common.api.ApiResponse;
+import com.oneforlogis.common.security.UserPrincipal;
 import com.oneforlogis.user.application.service.UserService;
 import com.oneforlogis.user.global.util.JwtUtil;
 import com.oneforlogis.user.presentation.request.UserLoginRequest;
+import com.oneforlogis.user.presentation.request.UserRoleUpdateRequest;
 import com.oneforlogis.user.presentation.request.UserSignupRequest;
+import com.oneforlogis.user.presentation.request.UserStatusRequest;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -47,4 +56,35 @@ public class UserController {
 
 		return ApiResponse.success("로그인에 성공했습니다!");
 	}
+
+	@Operation(summary = "회원가입 요청 승인 or 거부", description = "최종 관리자 아니면 허브 관리자가 회원가입 요청을 승인 또는 거부합니다.")
+	@PreAuthorize("hasRole('MASTER') or hasRole('HUB_MANAGER')")
+	@PatchMapping("/{userId}/status")
+	public ApiResponse<Void> updateStatus(@PathVariable UUID userId,
+		@RequestBody UserStatusRequest request
+		, @AuthenticationPrincipal UserPrincipal userPrincipal) {
+
+		userService.updateStatus(userId, request);
+
+		return ApiResponse.success("회원가입 요청을 변경하였습니다.");
+	}
+
+	@Operation(summary = "권한 설정", description = "최종 관리자가 회원의 권한을 설정합니다.")
+	@PreAuthorize("hasRole('MASTER')")
+	@PatchMapping("/{userId}/role")
+	public ApiResponse<Void> updateRole(@PathVariable UUID userId,
+		@RequestBody UserRoleUpdateRequest request,
+		@AuthenticationPrincipal UserPrincipal userPrincipal){
+
+		userService.updateRole(userId, request);
+
+		return ApiResponse.success("권한 변경에 성공하였습니다.");
+	}
+
+	// @Operation(summary = "권한 설정", description = "최종 관리자가 회원의 권한을 설정합니다.")
+	// @PreAuthorize("hasRole('MASTER')")
+	// @PatchMapping("/{userId}/role"){
+	// 	public ApiResponse<Void> updateRole(@PathVariable UserRoleUpdateRequest){
+	//
+	// 	}
 }

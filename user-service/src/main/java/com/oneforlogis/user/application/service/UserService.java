@@ -1,6 +1,7 @@
 package com.oneforlogis.user.application.service;
 
 import java.time.Duration;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,12 +12,15 @@ import org.springframework.util.StringUtils;
 import com.oneforlogis.common.exception.CustomException;
 import com.oneforlogis.common.exception.ErrorCode;
 import com.oneforlogis.common.model.Role;
+import com.oneforlogis.user.domain.model.Status;
 import com.oneforlogis.user.domain.model.User;
 import com.oneforlogis.user.domain.repository.UserRepository;
 import com.oneforlogis.user.global.util.JwtUtil;
 import com.oneforlogis.user.infrastructure.config.RedisService;
 import com.oneforlogis.user.presentation.request.UserLoginRequest;
+import com.oneforlogis.user.presentation.request.UserRoleUpdateRequest;
 import com.oneforlogis.user.presentation.request.UserSignupRequest;
+import com.oneforlogis.user.presentation.request.UserStatusRequest;
 
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
@@ -118,6 +122,26 @@ public class UserService {
 		httpResponse.addCookie(newRefreshTokenCookie);
 
 		log.info("로그인 성공: AT, RT 발급 및 Redis 저장 완료. User: {}", user.getName());
+	}
+
+	// 회원가입 요청 승인 or 거부
+	public void updateStatus(UUID userId, UserStatusRequest request) {
+
+		User user = userRepository.findById(userId).orElseThrow(
+			() -> new CustomException(ErrorCode.NOT_FOUND_NAME)
+		);
+
+		user.updateStatus(request.status());
+	}
+
+	// 권한 변경
+	public void updateRole(UUID userId, UserRoleUpdateRequest request) {
+
+		User user = userRepository.findById(userId).orElseThrow(
+			() -> new CustomException(ErrorCode.NOT_FOUND_NAME)
+		);
+
+		user.updateRole(request.role());
 	}
 
 	// 이전 토큰 무효화

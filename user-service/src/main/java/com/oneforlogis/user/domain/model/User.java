@@ -93,4 +93,12 @@ public class User extends BaseEntity {
 			.email(request.email())
 			.build();
 	}
+
+	public void updateStatus(Status status) {
+		this.status = status;
+	}
+
+	public void updateRole(Role role) {
+		this.role =  role;
+	}
 }
