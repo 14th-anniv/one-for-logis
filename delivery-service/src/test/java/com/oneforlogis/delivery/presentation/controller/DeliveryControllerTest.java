@@ -20,7 +20,7 @@ import com.oneforlogis.delivery.application.dto.request.DeliveryRouteRequest;
 import com.oneforlogis.delivery.application.dto.request.DeliverySearchCond;
 import com.oneforlogis.delivery.application.dto.request.DeliveryStatusUpdateRequest;
 import com.oneforlogis.delivery.application.dto.response.DeliveryResponse;
-import com.oneforlogis.delivery.application.dto.response.DeliveryRouteResponse
+import com.oneforlogis.delivery.application.dto.response.DeliveryRouteResponse;
 import com.oneforlogis.delivery.application.service.DeliveryRouteService;
 import com.oneforlogis.delivery.application.service.DeliveryService;
 import com.oneforlogis.delivery.domain.model.DeliveryRouteStatus;
