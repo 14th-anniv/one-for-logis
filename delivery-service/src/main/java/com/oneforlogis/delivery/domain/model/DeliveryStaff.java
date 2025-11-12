@@ -4,25 +4,20 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "p_delivery_staff",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_delivery_staff_delivery", columnNames = "delivery_id")
-        })
+@Getter
+@Table(name = "p_delivery_staff")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class DeliveryStaff {
 
@@ -56,18 +51,13 @@ public class DeliveryStaff {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "delivery_id", nullable = false)
-    private Delivery delivery;
-
-    public static DeliveryStaff create(Delivery delivery,
+    public static DeliveryStaff create(
             UUID hubId,
             DeliveryStaffType staffType,
             String slackId,
             Integer assignOrder,
             Boolean isActive) {
         DeliveryStaff s = new DeliveryStaff();
-        s.delivery = delivery;
         s.hubId = hubId;
         s.staffType = staffType;
         s.slackId = slackId;
