@@ -98,10 +98,11 @@ public class ProductService {
      * @param productId 상품 ID
      * @param amount 수량
      */
+    // 감소
     @Transactional
     public Product decreaseStock(UUID productId, int amount) {
         if (amount <= 0) {
-            throw new CustomException(ErrorCode.STOCK_NOT_ENOUGH);
+            throw new CustomException(ErrorCode.INVALID_STOCK_AMOUNT);
         }
         Product product = getProductById(productId);
         product.decreaseStock(amount);
@@ -109,6 +110,7 @@ public class ProductService {
         return product;
     }
 
+    // 증가
     @Transactional
     public Product increaseStock(UUID productId, int amount) {
         if (amount <= 0) {

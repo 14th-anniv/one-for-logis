@@ -90,7 +90,7 @@ public class Product extends BaseEntity {
         this.quantity = restStock;
     }
 
-    // 복원
+    // 증가 및 복원
     public void increaseStock(int amount) {
         if (amount <= 0) {
             throw new CustomException(ErrorCode.INVALID_RESTOCK_AMOUNT);

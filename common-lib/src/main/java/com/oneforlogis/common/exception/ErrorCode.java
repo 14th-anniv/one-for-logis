@@ -42,7 +42,8 @@ public enum ErrorCode {
     // Product
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다."),
     STOCK_NOT_ENOUGH(HttpStatus.BAD_REQUEST, "재고가 충분하지 않습니다."),
-    INVALID_RESTOCK_AMOUNT(HttpStatus.BAD_REQUEST, "복원 재고는 0보다 작을 수 없습니다."),
+    INVALID_RESTOCK_AMOUNT(HttpStatus.BAD_REQUEST, "복원할 수량은 0보다 커야 합니다."),
+    INVALID_STOCK_AMOUNT(HttpStatus.BAD_REQUEST, "차감할 수량은 0보다 커야 합니다"),
 
     // Order
 
