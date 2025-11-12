@@ -58,7 +58,7 @@ server:
 
 jwt:
   secret:
-    key:
+    key: ${JWT_SECRET_KEY}
 
   admin:
-    token:
+    token: ${JWT_ADMIN_TOKEN}
