@@ -3,6 +3,7 @@ package com.oneforlogis.user.global.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
@@ -13,6 +14,7 @@ import com.oneforlogis.common.security.SecurityConfigBase;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity // 메서드 보안 활성화(@PreAuthorize 활성화)
 public class WebSecurityConfig extends SecurityConfigBase {
 
 	@Bean
