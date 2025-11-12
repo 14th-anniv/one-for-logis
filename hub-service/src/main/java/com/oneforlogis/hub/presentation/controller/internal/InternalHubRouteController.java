@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "HubRoutes", description = "허브 경로 관련 API")
+@Tag(name = "Internal HubRoutes", description = "내부용 허브 경로 조회 API")
 @RestController
 @RequestMapping("/api/v1/internal/hubs/routes")
 @RequiredArgsConstructor
