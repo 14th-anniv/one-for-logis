@@ -144,4 +144,49 @@ class DeliveryStaffControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.isSuccess").value(false));
     }
+
+    @Test
+    @DisplayName("다음 배정 대상 조회 성공 - 200 + isSuccess=true")
+    void getNextStaff_success() throws Exception {
+        // given
+        UUID hubId = UUID.randomUUID();
+
+        DeliveryStaffResponse response = new DeliveryStaffResponse(
+                1L,
+                hubId,
+                DeliveryStaffType.IN_HOUSE,
+                "U111111",
+                1,
+                true
+        );
+
+        when(deliveryStaffService.getNextStaff(eq(hubId)))
+                .thenReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/v1/deliveries-staff/{hubId}/next", hubId)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.data.hubId").value(hubId.toString()))
+                .andExpect(jsonPath("$.data.slackId").value("U111111"));
+    }
+
+    @Test
+    @DisplayName("다음 배정 대상 조회 실패 - 배정 가능한 직원이 없으면 400 + isSuccess=false")
+    void getNextStaff_noActiveStaff() throws Exception {
+        // given
+        UUID hubId = UUID.randomUUID();
+
+        when(deliveryStaffService.getNextStaff(eq(hubId)))
+                .thenThrow(new CustomException(ErrorCode.NO_ACTIVE_STAFF));
+
+        // when & then
+        mockMvc.perform(get("/api/v1/deliveries-staff/{hubId}/next", hubId)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.isSuccess").value(false))
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").value("배정 가능한 직원이 없습니다."));
+    }
 }
