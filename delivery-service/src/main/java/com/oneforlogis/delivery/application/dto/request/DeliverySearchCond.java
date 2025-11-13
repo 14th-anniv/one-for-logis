@@ -1,4 +1,4 @@
-package com.oneforlogis.delivery.application.dto;
+package com.oneforlogis.delivery.application.dto.request;
 
 import com.oneforlogis.delivery.domain.model.DeliveryStatus;
 import java.util.UUID;

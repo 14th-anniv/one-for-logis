@@ -2,8 +2,8 @@ package com.oneforlogis.delivery.application.service;
 
 import com.oneforlogis.common.exception.CustomException;
 import com.oneforlogis.common.exception.ErrorCode;
-import com.oneforlogis.delivery.application.dto.DeliveryRouteRequest;
-import com.oneforlogis.delivery.application.dto.DeliveryRouteResponse;
+import com.oneforlogis.delivery.application.dto.request.DeliveryRouteRequest;
+import com.oneforlogis.delivery.application.dto.response.DeliveryRouteResponse;
 import com.oneforlogis.delivery.config.DistanceCalculator;
 import com.oneforlogis.delivery.domain.model.Delivery;
 import com.oneforlogis.delivery.domain.model.DeliveryRoute;

@@ -1,7 +1,7 @@
 package com.oneforlogis.delivery.presentation.controller;
 
-import com.oneforlogis.delivery.application.dto.DeliveryRouteRequest;
-import com.oneforlogis.delivery.application.dto.DeliveryRouteResponse;
+import com.oneforlogis.delivery.application.dto.request.DeliveryRouteRequest;
+import com.oneforlogis.delivery.application.dto.response.DeliveryRouteResponse;
 import com.oneforlogis.delivery.application.service.DeliveryRouteService;
 import jakarta.validation.Valid;
 import java.util.List;
