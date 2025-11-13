@@ -10,6 +10,7 @@ import com.oneforlogis.notification.application.service.NotificationService;
 import com.oneforlogis.notification.domain.model.*;
 import com.oneforlogis.notification.infrastructure.client.user.UserResponse;
 import com.oneforlogis.notification.infrastructure.client.user.UserServiceClient;
+import com.oneforlogis.notification.presentation.request.DeliveryStatusNotificationRequest;
 import com.oneforlogis.notification.presentation.request.ManualNotificationRequest;
 import com.oneforlogis.notification.presentation.request.OrderNotificationRequest;
 import com.oneforlogis.notification.presentation.response.ApiStatisticsResponse;
@@ -159,6 +160,77 @@ class NotificationControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.status").value("SENT"))
                 .andExpect(jsonPath("$.data.senderType").value("USER"));
+    }
+
+    @Test
+    @DisplayName("배송 상태 변경 알림 발송 API - 성공 (201 Created)")
+    void sendDeliveryStatusNotification_Success() throws Exception {
+        // Given
+        UUID deliveryId = UUID.randomUUID();
+        UUID orderId = UUID.randomUUID();
+        DeliveryStatusNotificationRequest request = new DeliveryStatusNotificationRequest(
+                deliveryId,
+                orderId,
+                "HUB_WAITING",
+                "HUB_MOVING",
+                "U123456",
+                "배송담당자"
+        );
+
+        // DELIVERY_STATUS_UPDATE 타입 응답 생성
+        NotificationResponse response = new NotificationResponse(
+                UUID.randomUUID(),
+                SenderType.SYSTEM,
+                null,
+                null,
+                null,
+                "U123456",
+                "배송담당자",
+                "🚚 *배송 상태 업데이트*\n\n배송 ID: `" + deliveryId + "`\n주문 ID: `" + orderId + "`\n이전 상태: `HUB_WAITING`\n현재 상태: `HUB_MOVING`\n\n수령인: 배송담당자\n",
+                MessageType.DELIVERY_STATUS_UPDATE,
+                deliveryId,
+                MessageStatus.SENT,
+                LocalDateTime.now().toString(),
+                null,
+                "system",
+                LocalDateTime.now().toString(),
+                "system",
+                LocalDateTime.now().toString()
+        );
+
+        when(notificationService.sendDeliveryStatusNotification(any(DeliveryStatusNotificationRequest.class)))
+                .thenReturn(response);
+
+        // When & Then
+        mockMvc.perform(post("/api/v1/notifications/delivery-status")
+                        .with(authentication(createAuthentication("testuser", Role.DELIVERY_MANAGER)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.status").value("SENT"))
+                .andExpect(jsonPath("$.data.messageType").value("DELIVERY_STATUS_UPDATE"))
+                .andExpect(jsonPath("$.data.senderType").value("SYSTEM"));
+    }
+
+    @Test
+    @DisplayName("배송 상태 변경 알림 발송 API - 필수 필드 누락 시 400 Bad Request")
+    void sendDeliveryStatusNotification_MissingFields_400() throws Exception {
+        // Given - deliveryId 누락
+        DeliveryStatusNotificationRequest request = new DeliveryStatusNotificationRequest(
+                null,  // deliveryId 누락
+                UUID.randomUUID(),
+                "HUB_WAITING",
+                "HUB_MOVING",
+                "U123456",
+                "배송담당자"
+        );
+
+        // When & Then
+        mockMvc.perform(post("/api/v1/notifications/delivery-status")
+                        .with(authentication(createAuthentication("testuser", Role.DELIVERY_MANAGER)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
