@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 
 @Schema(description = "수동 메시지 발송 요청 DTO - 인증된 사용자가 직접 Slack 메시지 발송")
 public record ManualNotificationRequest(
-        @Schema(description = "수신자 Slack ID", example = "U01234ABCDE")
+        @Schema(description = "수신자 Slack ID", example = "C09QY22AMEE")
         @NotBlank(message = "수신자 Slack ID는 필수입니다.")
         String recipientSlackId,
 

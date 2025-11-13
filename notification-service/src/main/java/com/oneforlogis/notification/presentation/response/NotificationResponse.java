@@ -19,13 +19,13 @@ public record NotificationResponse(
         @Schema(description = "발신자 사용자명 (USER 타입만)", example = "user1")
         String senderUsername,
 
-        @Schema(description = "발신자 Slack ID (USER 타입만)", example = "U01234ABCDE")
+        @Schema(description = "발신자 Slack ID (USER 타입만)", example = "C09QY22AMEE")
         String senderSlackId,
 
         @Schema(description = "발신자 이름 (USER 타입만)", example = "김발신")
         String senderName,
 
-        @Schema(description = "수신자 Slack ID", example = "U98765ZYXWV")
+        @Schema(description = "수신자 Slack ID", example = "C09QY22AMEE")
         String recipientSlackId,
 
         @Schema(description = "수신자 이름", example = "이수신")
