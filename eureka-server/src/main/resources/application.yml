@@ -22,4 +22,3 @@ management:
 logging:
   level:
     org.springframework.cloud.netflix.eureka: INFO
-    org.springframework.cloud.netflix.eureka: INFO
