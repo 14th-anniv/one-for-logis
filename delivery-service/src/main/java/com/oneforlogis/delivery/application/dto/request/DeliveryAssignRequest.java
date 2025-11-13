@@ -1,4 +1,4 @@
-package com.oneforlogis.delivery.application.dto;
+package com.oneforlogis.delivery.application.dto.request;
 
 public record DeliveryAssignRequest(
 

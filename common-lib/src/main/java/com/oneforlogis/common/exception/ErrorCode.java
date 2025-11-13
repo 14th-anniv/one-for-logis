@@ -46,10 +46,11 @@ public enum ErrorCode {
 
     // Delivery
     DELIVERY_NOT_FOUND(HttpStatus.NOT_FOUND, "배송을 찾을 수 없습니다."),
-
     INVALID_STATUS_TRANSITION(HttpStatus.BAD_REQUEST, "잘못된 상태 전이 요청입니다."),
     INVALID_DELIVERY_ASSIGNMENT(HttpStatus.BAD_REQUEST, "배송 담당자는 허브 대기 상태에서만 배정할 수 있습니다."),
-    
+    DUPLICATE_DELIVERY_STAFF(HttpStatus.CONFLICT, "이미 배송 담당자가 지정되어 있습니다."),
+    INVALID_DELIVERY_STATUS(HttpStatus.BAD_REQUEST, "해당 상태에서는 담당자를 등록할 수 없습니다."),
+
     // Notification
     NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다."),
     NOTIFICATION_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "알림 발송에 실패했습니다."),

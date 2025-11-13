@@ -1,10 +1,9 @@
 package com.oneforlogis.delivery.presentation.controller;
 
-import com.oneforlogis.delivery.application.dto.DeliveryAssignRequest;
-import com.oneforlogis.delivery.application.dto.DeliveryResponse;
-import com.oneforlogis.delivery.application.dto.DeliverySearchCond;
-import com.oneforlogis.delivery.application.dto.DeliveryStatusUpdateRequest;
-import com.oneforlogis.delivery.application.dto.DeliveryResponse;
+import com.oneforlogis.delivery.application.dto.request.DeliveryAssignRequest;
+import com.oneforlogis.delivery.application.dto.request.DeliverySearchCond;
+import com.oneforlogis.delivery.application.dto.request.DeliveryStatusUpdateRequest;
+import com.oneforlogis.delivery.application.dto.response.DeliveryResponse;
 import com.oneforlogis.delivery.application.service.DeliveryService;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
