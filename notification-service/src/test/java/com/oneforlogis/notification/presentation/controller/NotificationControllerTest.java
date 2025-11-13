@@ -85,7 +85,7 @@ class NotificationControllerTest {
                 "부산 허브",
                 "부산시 해운대구",
                 "배송담당: 홍길동",
-                "U123456",
+                "C09QY22AMEE",
                 "부산허브 관리자"
         );
 
@@ -109,7 +109,7 @@ class NotificationControllerTest {
     void sendManualNotification_Success() throws Exception {
         // Given
         ManualNotificationRequest request = new ManualNotificationRequest(
-                "U789012",
+                "C09QY22AMEE",
                 "수신자 이름",
                 "테스트 메시지입니다."
         );
@@ -118,7 +118,7 @@ class NotificationControllerTest {
                 .userId(1L)
                 .username("testuser")
                 .name("테스트 사용자")
-                .slackId("U123456")
+                .slackId("C09QY22AMEE")
                 .role(Role.HUB_MANAGER)
                 .build();
 
@@ -127,9 +127,9 @@ class NotificationControllerTest {
                 UUID.randomUUID(),
                 SenderType.USER,
                 "testuser",
-                "U123456",
+                "C09QY22AMEE",
                 "테스트 사용자",
-                "U789012",
+                "C09QY22AMEE",
                 "수신자 이름",
                 "테스트 메시지입니다.",
                 MessageType.MANUAL,
@@ -148,7 +148,7 @@ class NotificationControllerTest {
         when(notificationService.sendManualNotification(
                 any(ManualNotificationRequest.class),
                 eq("testuser"),
-                eq("U123456"),
+                eq("C09QY22AMEE"),
                 eq("테스트 사용자")
         )).thenReturn(response);
 
@@ -173,7 +173,7 @@ class NotificationControllerTest {
                 orderId,
                 "HUB_WAITING",
                 "HUB_MOVING",
-                "U123456",
+                "C09QY22AMEE",
                 "배송담당자"
         );
 
@@ -184,7 +184,7 @@ class NotificationControllerTest {
                 null,
                 null,
                 null,
-                "U123456",
+                "C09QY22AMEE",
                 "배송담당자",
                 "🚚 *배송 상태 업데이트*\n\n배송 ID: `" + deliveryId + "`\n주문 ID: `" + orderId + "`\n이전 상태: `HUB_WAITING`\n현재 상태: `HUB_MOVING`\n\n수령인: 배송담당자\n",
                 MessageType.DELIVERY_STATUS_UPDATE,
@@ -221,7 +221,7 @@ class NotificationControllerTest {
                 UUID.randomUUID(),
                 "HUB_WAITING",
                 "HUB_MOVING",
-                "U123456",
+                "C09QY22AMEE",
                 "배송담당자"
         );
 
@@ -367,7 +367,7 @@ class NotificationControllerTest {
 
         when(notificationService.searchNotifications(
                 eq("testuser"),
-                eq("U123456"),
+                eq("C09QY22AMEE"),
                 eq(MessageType.MANUAL),
                 eq(MessageStatus.SENT),
                 anyInt(), anyInt(), anyString(), anyBoolean()))
@@ -376,7 +376,7 @@ class NotificationControllerTest {
         // When & Then
         mockMvc.perform(get("/api/v1/notifications/search")
                         .param("senderUsername", "testuser")
-                        .param("recipientSlackId", "U123456")
+                        .param("recipientSlackId", "C09QY22AMEE")
                         .param("messageType", "MANUAL")
                         .param("status", "SENT")
                         .param("page", "0")
@@ -424,7 +424,7 @@ class NotificationControllerTest {
     void sendManualNotification_Forbidden() throws Exception {
         // Given
         ManualNotificationRequest request = new ManualNotificationRequest(
-                "U789012",
+                "C09QY22AMEE",
                 "수신자",
                 "테스트"
         );
@@ -456,7 +456,7 @@ class NotificationControllerTest {
                 null,
                 null,
                 null,
-                "U123456",
+                "C09QY22AMEE",
                 "수신자",
                 "테스트 메시지",
                 MessageType.ORDER_NOTIFICATION,

@@ -24,7 +24,7 @@ public record DeliveryStatusNotificationRequest(
         @NotBlank(message = "현재 배송 상태는 필수입니다.")
         String currentStatus,
 
-        @Schema(description = "수신자 Slack ID (허브 관리자 또는 배송 담당자)", example = "U01234ABCDE")
+        @Schema(description = "수신자 Slack ID (허브 관리자 또는 배송 담당자)", example = "C09QY22AMEE")
         @NotBlank(message = "수신자 Slack ID는 필수입니다.")
         String recipientSlackId,
 

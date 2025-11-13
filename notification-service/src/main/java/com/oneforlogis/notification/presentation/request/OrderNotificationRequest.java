@@ -52,7 +52,7 @@ public record OrderNotificationRequest(
         @NotBlank(message = "배송 담당자 정보는 필수입니다.")
         String deliveryPersonInfo,
 
-        @Schema(description = "발송 허브 관리자 Slack ID", example = "U01234ABCDE")
+        @Schema(description = "발송 허브 관리자 Slack ID", example = "C09QY22AMEE")
         @NotBlank(message = "수신자 Slack ID는 필수입니다.")
         String recipientSlackId,
 
