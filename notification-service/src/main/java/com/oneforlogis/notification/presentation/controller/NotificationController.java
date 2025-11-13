@@ -69,6 +69,7 @@ public class NotificationController {
      * 수동 메시지 발송 (인증된 사용자가 직접 호출)
      * - 모든 인증된 사용자 가능
      * - 발신자 정보를 스냅샷으로 저장
+     * - user-service의 마이페이지 API로 최신 사용자 정보 조회
      */
     @Operation(
             summary = "수동 메시지 발송",
@@ -84,11 +85,11 @@ public class NotificationController {
         log.info("[NotificationController] POST /api/v1/notifications/manual - from: {}, to: {}",
                 userPrincipal.username(), request.recipientSlackId());
 
-        // user-service에서 발신자 정보 조회 (PR #75 패턴 적용: 응답 검증)
-        ApiResponse<UserResponse> userApiResponse = userServiceClient.getUserByUsername(userPrincipal.username());
+        // user-service 마이페이지 API로 발신자 정보 조회 (최신 정보 보장)
+        ApiResponse<UserResponse> userApiResponse = userServiceClient.getMyInfo(userPrincipal.id());
 
         if (userApiResponse == null || userApiResponse.data() == null) {
-            log.error("[NotificationController] user-service 응답이 null입니다 - username: {}", userPrincipal.username());
+            log.error("[NotificationController] user-service 응답이 null입니다 - userId: {}", userPrincipal.id());
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
 
