@@ -1,5 +1,5 @@
 server:
-  port: 8761
+  port: ${EUREKA_PORT:8761}
 
 spring:
   profiles:
@@ -21,3 +21,6 @@ management:
 logging:
   level:
     org.springframework.cloud.netflix.eureka: INFO
+
+server:
+  port: 8761

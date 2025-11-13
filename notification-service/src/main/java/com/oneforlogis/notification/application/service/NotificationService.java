@@ -58,17 +58,12 @@ public class NotificationService {
 
     /**
      * 주문 알림 발송 내부 로직 (공통)
+     * Priority 2-1: Gemini messageId 연계를 위해 Notification을 먼저 저장(PENDING) 후 Gemini 호출
      */
     private NotificationResponse sendOrderNotificationInternal(OrderNotificationRequest request, String eventId) {
         log.info("[NotificationService] 주문 알림 발송 시작 - orderId: {}, eventId: {}", request.orderId(), eventId);
 
-        // Step 1: Gemini AI로 최종 발송 시한 계산
-        String aiGeneratedDeadline = calculateDepartureDeadline(request);
-
-        // Step 2: Slack 메시지 생성
-        String slackMessage = buildOrderNotificationMessage(request, aiGeneratedDeadline);
-
-        // Step 3: Notification 엔티티 생성 (SYSTEM 타입)
+        // Step 1: Notification 엔티티 먼저 생성 (PENDING 상태로 저장)
         Notification notification = Notification.builder()
                 .senderType(SenderType.SYSTEM)
                 .senderUsername(null)
@@ -76,13 +71,21 @@ public class NotificationService {
                 .senderName(null)
                 .recipientSlackId(request.recipientSlackId())
                 .recipientName(request.recipientName())
-                .messageContent(slackMessage)
+                .messageContent("Processing...")  // 임시 메시지
                 .messageType(MessageType.ORDER_NOTIFICATION)
                 .referenceId(request.orderId())
                 .eventId(eventId)  // Kafka 이벤트인 경우에만 eventId 저장
                 .build();
 
         Notification savedNotification = notificationRepository.save(notification);
+        log.info("[NotificationService] Notification 저장 완료 - notificationId: {} (PENDING)", savedNotification.getId());
+
+        // Step 2: Gemini AI로 최종 발송 시한 계산 (notificationId 전달)
+        String aiGeneratedDeadline = calculateDepartureDeadline(request, savedNotification.getId());
+
+        // Step 3: Slack 메시지 생성 및 Notification 업데이트
+        String slackMessage = buildOrderNotificationMessage(request, aiGeneratedDeadline);
+        savedNotification.updateMessageContent(slackMessage);
 
         // Step 4: Slack API 호출
         SlackMessageRequest slackRequest = SlackMessageRequest.builder()
@@ -92,18 +95,18 @@ public class NotificationService {
 
         SlackMessageResponse slackResponse = slackClientWrapper.postMessage(slackRequest, savedNotification.getId());
 
-        // Step 5: 발송 상태 업데이트
+        // Step 5: 발송 상태 업데이트 (실패 시 예외 throw - Priority 1-3)
         if (slackResponse != null && slackResponse.isOk()) {
             savedNotification.markAsSent();
             log.info("[NotificationService] 주문 알림 발송 성공 - notificationId: {}", savedNotification.getId());
+            return NotificationResponse.from(savedNotification);
         } else {
             String errorMsg = slackResponse != null ? slackResponse.getError() : "Unknown error";
             savedNotification.markAsFailed(errorMsg);
             log.error("[NotificationService] 주문 알림 발송 실패 - notificationId: {}, error: {}",
                     savedNotification.getId(), errorMsg);
+            throw new CustomException(ErrorCode.NOTIFICATION_SEND_FAILED);
         }
-
-        return NotificationResponse.from(savedNotification);
     }
 
     /**
@@ -144,18 +147,18 @@ public class NotificationService {
 
         SlackMessageResponse slackResponse = slackClientWrapper.postMessage(slackRequest, savedNotification.getId());
 
-        // Step 3: 발송 상태 업데이트
+        // Step 3: 발송 상태 업데이트 (실패 시 예외 throw - Priority 1-3)
         if (slackResponse != null && slackResponse.isOk()) {
             savedNotification.markAsSent();
             log.info("[NotificationService] 수동 메시지 발송 성공 - notificationId: {}", savedNotification.getId());
+            return NotificationResponse.from(savedNotification);
         } else {
             String errorMsg = slackResponse != null ? slackResponse.getError() : "Unknown error";
             savedNotification.markAsFailed(errorMsg);
             log.error("[NotificationService] 수동 메시지 발송 실패 - notificationId: {}, error: {}",
                     savedNotification.getId(), errorMsg);
+            throw new CustomException(ErrorCode.NOTIFICATION_SEND_FAILED);
         }
-
-        return NotificationResponse.from(savedNotification);
     }
 
     /**
@@ -188,13 +191,14 @@ public class NotificationService {
 
     /**
      * Gemini AI를 통한 최종 발송 시한 계산
+     * Priority 2-1: notificationId를 전달하여 ExternalApiLog와 Notification 연계
      */
-    private String calculateDepartureDeadline(OrderNotificationRequest request) {
+    private String calculateDepartureDeadline(OrderNotificationRequest request, UUID notificationId) {
         String promptText = buildGeminiPrompt(request);
 
         GeminiRequest geminiRequest = GeminiRequest.createTextRequest(promptText);
 
-        GeminiResponse geminiResponse = geminiClientWrapper.generateContent(geminiRequest, null);
+        GeminiResponse geminiResponse = geminiClientWrapper.generateContent(geminiRequest, notificationId);
 
         if (geminiResponse != null && geminiResponse.getContent() != null && !geminiResponse.getContent().isBlank()) {
             return geminiResponse.getContent().trim();

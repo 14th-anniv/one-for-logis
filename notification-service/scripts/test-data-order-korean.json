@@ -1,0 +1,15 @@
+{
+  "orderId": "550e8400-e29b-41d4-a716-446655440000",
+  "ordererInfo": "주문자: 테스트업체 / test@example.com",
+  "requestingCompanyName": "공급업체명",
+  "receivingCompanyName": "수령업체명",
+  "productInfo": "상품: 테스트상품 x 10",
+  "requestDetails": "빠른 배송 요청",
+  "departureHub": "경기남부 허브",
+  "waypoints": ["대전 허브", "대구 허브"],
+  "destinationHub": "부산 허브",
+  "destinationAddress": "부산시 해운대구",
+  "deliveryPersonInfo": "배송담당: 홍길동",
+  "recipientSlackId": "C09QY22AMEE",
+  "recipientName": "부산허브 관리자"
+}

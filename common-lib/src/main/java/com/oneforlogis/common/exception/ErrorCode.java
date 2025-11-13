@@ -54,12 +54,16 @@ public enum ErrorCode {
     // Notification
     NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다."),
     NOTIFICATION_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "알림 발송에 실패했습니다."),
+    NOTIFICATION_INVALID_SENDER(HttpStatus.BAD_REQUEST, "발신자 정보가 유효하지 않습니다."),
+    NOTIFICATION_INVALID_RECIPIENT(HttpStatus.BAD_REQUEST, "수신자 정보가 유효하지 않습니다."),
+    NOTIFICATION_INVALID_CONTENT(HttpStatus.BAD_REQUEST, "메시지 내용이 유효하지 않습니다."),
 
     // Redis
     REDIS_SERIALIZATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Redis 직렬화 중 오류가 발생했습니다."),
     REDIS_DESERIALIZATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Redis 역직렬화 중 오류가 발생했습니다."),
 
-    // user
+    // User
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
     DUPLICATE_USERNAME(HttpStatus.CONFLICT, "이미 존재하는 아이디입니다."),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "이미 존재하는 이메일입니다."),
     DUPLICATE_SLACK_ID(HttpStatus.CONFLICT, "이미 존재하는 슬렉 아이디입니다."),
