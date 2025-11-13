@@ -56,6 +56,7 @@ public enum ErrorCode {
     INVALID_DELIVERY_ASSIGNMENT(HttpStatus.BAD_REQUEST, "배송 담당자는 허브 대기 상태에서만 배정할 수 있습니다."),
     DUPLICATE_DELIVERY_STAFF(HttpStatus.CONFLICT, "이미 배송 담당자가 지정되어 있습니다."),
     INVALID_DELIVERY_STATUS(HttpStatus.BAD_REQUEST, "해당 상태에서는 담당자를 등록할 수 없습니다."),
+    NO_ACTIVE_STAFF(HttpStatus.BAD_REQUEST, "배정 가능한 직원이 없습니다."),
 
     // Notification
     NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다."),

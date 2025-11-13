@@ -10,9 +10,11 @@ import com.oneforlogis.delivery.domain.model.DeliveryStaff;
 import com.oneforlogis.delivery.domain.model.DeliveryStatus;
 import com.oneforlogis.delivery.domain.repository.DeliveryRepository;
 import com.oneforlogis.delivery.domain.repository.DeliveryStaffRepository;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,10 +57,6 @@ public class DeliveryStaffService {
     public Page<DeliveryStaffResponse> getStaffByHub(UUID hubId, Pageable pageable) {
         Page<DeliveryStaff> page = deliveryStaffRepository.findByHubId(hubId, pageable);
 
-        if (page.isEmpty()) {
-            throw new CustomException(ErrorCode.HUB_NOT_FOUND);
-        }
-
         return page.map(s -> new DeliveryStaffResponse(
                 s.getStaffId(),
                 s.getHubId(),
@@ -67,5 +65,29 @@ public class DeliveryStaffService {
                 s.getAssignOrder(),
                 s.getIsActive()
         ));
+    }
+
+    @Transactional
+    public DeliveryStaffResponse getNextStaff(UUID hubId) {
+
+        Page<DeliveryStaff> page = deliveryStaffRepository.findNextStaff(hubId,
+                PageRequest.of(0, 1));
+
+        if (page.isEmpty()) {
+            throw new CustomException(ErrorCode.NO_ACTIVE_STAFF);
+        }
+
+        DeliveryStaff staff = page.getContent().get(0);
+
+        staff.updateLastAssignedAt(LocalDateTime.now());
+
+        return new DeliveryStaffResponse(
+                staff.getStaffId(),
+                staff.getHubId(),
+                staff.getStaffType(),
+                staff.getSlackId(),
+                staff.getAssignOrder(),
+                staff.getIsActive()
+        );
     }
 }
