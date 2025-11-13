@@ -5,10 +5,11 @@
 # ============================================
 # Issue #14: notification-service REST API 검증 (7 endpoints)
 # Issue #16: Query & Statistics API 검증 (2 new endpoints)
+# Issue #84: 배송 상태 알림 REST API 검증 (1 new endpoint)
 # 실행: bash notification-service/scripts/test-notification-api.sh
-# 총 테스트: 9개 (주문 알림, 수동 메시지, 단일 조회, 목록 조회,
-#                   API 로그 조회, Provider별 조회, 메시지별 조회,
-#                   필터링 조회, 통계 조회)
+# 총 테스트: 10개 (주문 알림, 실제 Slack 발송, 수동 메시지, 배송 상태 알림,
+#                    단일 조회, 목록 조회, API 로그 조회, Provider별 조회,
+#                    메시지별 조회, 필터링 조회, 통계 조회)
 
 BASE_URL="http://localhost:8700/api/v1/notifications"
 GATEWAY_URL="http://localhost:8000/api/v1/notifications"
@@ -160,7 +161,33 @@ run_test \
     "201"
 
 # ============================================
-# Test 2: 수동 메시지 발송 - 권한 없음 (Auth Required)
+# Test 2: 배송 상태 변경 알림 발송 (Auth Required - Issue #84)
+# ============================================
+DELIVERY_ID=$(powershell -Command "[guid]::NewGuid().ToString()")
+ORDER_ID_FOR_DELIVERY=$(powershell -Command "[guid]::NewGuid().ToString()")
+
+DELIVERY_STATUS_DATA=$(cat <<EOF
+{
+  "deliveryId": "$DELIVERY_ID",
+  "orderId": "$ORDER_ID_FOR_DELIVERY",
+  "previousStatus": "HUB_WAITING",
+  "currentStatus": "HUB_MOVING",
+  "recipientSlackId": "C09QY22AMEE",
+  "recipientName": "Delivery Manager"
+}
+EOF
+)
+
+run_test \
+    "배송 상태 변경 알림 발송 - 권한 없음 (POST /delivery-status)" \
+    "POST" \
+    "$BASE_URL/delivery-status" \
+    "$DELIVERY_STATUS_DATA" \
+    "" \
+    "403"
+
+# ============================================
+# Test 3: 수동 메시지 발송 - 권한 없음 (Auth Required)
 # ============================================
 MANUAL_DATA=$(cat <<EOF
 {
@@ -180,7 +207,7 @@ run_test \
     "403"
 
 # ============================================
-# Test 3: 알림 단일 조회 (Auth Required)
+# Test 4: 알림 단일 조회 (Auth Required)
 # ============================================
 # 실제 ID는 DB에서 조회 필요, 여기서는 임의 UUID 사용
 NOTIFICATION_ID=$(powershell -Command "[guid]::NewGuid().ToString()")
@@ -194,7 +221,7 @@ run_test \
     "403"
 
 # ============================================
-# Test 4: 알림 목록 조회 (MASTER Only)
+# Test 5: 알림 목록 조회 (MASTER Only)
 # ============================================
 run_test \
     "알림 목록 조회 - 권한 없음 (GET /?page=0&size=10)" \
@@ -205,7 +232,7 @@ run_test \
     "403"
 
 # ============================================
-# Test 5: 외부 API 로그 전체 조회 (MASTER Only)
+# Test 6: 외부 API 로그 전체 조회 (MASTER Only)
 # ============================================
 run_test \
     "외부 API 로그 전체 조회 - 권한 없음 (GET /api-logs)" \
@@ -216,7 +243,7 @@ run_test \
     "403"
 
 # ============================================
-# Test 6: 외부 API 로그 Provider별 조회 (MASTER Only)
+# Test 7: 외부 API 로그 Provider별 조회 (MASTER Only)
 # ============================================
 run_test \
     "외부 API 로그 Provider별 조회 - 권한 없음 (GET /api-logs/provider/SLACK)" \
@@ -227,7 +254,7 @@ run_test \
     "403"
 
 # ============================================
-# Test 7: 외부 API 로그 메시지 ID별 조회 (MASTER Only)
+# Test 8: 외부 API 로그 메시지 ID별 조회 (MASTER Only)
 # ============================================
 MESSAGE_ID=$(powershell -Command "[guid]::NewGuid().ToString()")
 run_test \
@@ -239,7 +266,7 @@ run_test \
     "403"
 
 # ============================================
-# Test 8: 알림 필터링 조회 (MASTER Only) - NEW (Issue #16)
+# Test 9: 알림 필터링 조회 (MASTER Only) - NEW (Issue #16)
 # ============================================
 run_test \
     "알림 필터링 조회 - 권한 없음 (GET /search)" \
@@ -250,7 +277,7 @@ run_test \
     "403"
 
 # ============================================
-# Test 9: API 통계 조회 (MASTER Only) - NEW (Issue #16)
+# Test 10: API 통계 조회 (MASTER Only) - NEW (Issue #16)
 # ============================================
 run_test \
     "API 통계 조회 - 권한 없음 (GET /api-logs/stats)" \

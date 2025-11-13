@@ -12,6 +12,7 @@ import com.oneforlogis.notification.domain.model.MessageStatus;
 import com.oneforlogis.notification.domain.model.MessageType;
 import com.oneforlogis.notification.infrastructure.client.user.UserResponse;
 import com.oneforlogis.notification.infrastructure.client.user.UserServiceClient;
+import com.oneforlogis.notification.presentation.request.DeliveryStatusNotificationRequest;
 import com.oneforlogis.notification.presentation.request.ManualNotificationRequest;
 import com.oneforlogis.notification.presentation.request.OrderNotificationRequest;
 import com.oneforlogis.notification.presentation.response.ApiStatisticsResponse;
@@ -100,6 +101,28 @@ public class NotificationController {
                 userResponse.getName()
         );
 
+        return ApiResponse.created(response);
+    }
+
+    /**
+     * 배송 상태 변경 알림 발송 (delivery-service에서 호출 또는 재발송용)
+     * - 모든 인증된 사용자 가능
+     * - Kafka 이벤트와 동일한 형식의 알림 발송
+     */
+    @Operation(
+            summary = "배송 상태 변경 알림 발송",
+            description = "배송 상태가 변경될 때 Slack 알림을 발송합니다. delivery-service에서 호출하거나 수동 재발송 시 사용합니다."
+    )
+    @PreAuthorize("hasAnyRole('MASTER', 'HUB_MANAGER', 'DELIVERY_MANAGER', 'COMPANY_MANAGER')")
+    @PostMapping("/delivery-status")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<NotificationResponse> sendDeliveryStatusNotification(
+            @Valid @RequestBody DeliveryStatusNotificationRequest request
+    ) {
+        log.info("[NotificationController] POST /api/v1/notifications/delivery-status - deliveryId: {}, status: {} → {}",
+                request.deliveryId(), request.previousStatus(), request.currentStatus());
+
+        NotificationResponse response = notificationService.sendDeliveryStatusNotification(request);
         return ApiResponse.created(response);
     }
 
