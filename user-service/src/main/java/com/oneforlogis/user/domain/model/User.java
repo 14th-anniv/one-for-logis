@@ -2,6 +2,7 @@ package com.oneforlogis.user.domain.model;
 
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.oneforlogis.common.model.BaseEntity;
 import com.oneforlogis.common.model.Role;
 import com.oneforlogis.user.presentation.request.UserSignupRequest;
@@ -19,6 +20,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/** Redis에는 "active": true 라는 JSON 필드가 저장
+ * User 클래스에는 active라는 멤버 변수 X(isActive() 메서드 상속)
+ * -> BaseEntity의 isActive()가 Getter로 인식되어 active 필드 생성
+ * */
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Entity
 @Table(name = "p_user")
 @Getter
@@ -92,5 +98,13 @@ public class User extends BaseEntity {
 			.status(Status.PENDING)
 			.email(request.email())
 			.build();
+	}
+
+	public void updateStatus(Status status) {
+		this.status = status;
+	}
+
+	public void updateRole(Role role) {
+		this.role = role;
 	}
 }

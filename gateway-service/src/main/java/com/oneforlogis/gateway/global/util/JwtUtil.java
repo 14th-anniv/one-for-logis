@@ -64,7 +64,7 @@ public class JwtUtil {
 		return BEARER_PREFIX +
 			Jwts.builder()
 				.setSubject(username)
-				.claim(AUTHORIZATION_KEY, role.getAuthority())
+				.claim("role", role.getAuthority())
 				.claim("userId", String.valueOf(userId))
 				.claim("userName", username)
 				.claim("jti", jti) // Blacklist 관리를 위한 JTI
@@ -83,7 +83,7 @@ public class JwtUtil {
 
 		return Jwts.builder()
 			.setSubject(username)
-			.claim(AUTHORIZATION_KEY, role.getAuthority())
+			.claim("role", role.getAuthority())
 			.claim("jti", jti)
 			.setExpiration(new Date(date.getTime() + REFRESH_TOKEN_TIME))
 			.setIssuedAt(date)
@@ -136,7 +136,12 @@ public class JwtUtil {
 	public boolean validateToken(String token) {
 		try {
 			// 서명 및 만료 검증
-			Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+			Claims claims = Jwts.parserBuilder()
+				.setSigningKey(key)
+				.setAllowedClockSkewSeconds(60) // 60초의 시간 오차 허용
+				.build()
+				.parseClaimsJws(token)
+				.getBody();
 
 			// 블랙리스트에 등록되어있는지 확인 (JTI 사용)
 			String jti = claims.get("jti", String.class);

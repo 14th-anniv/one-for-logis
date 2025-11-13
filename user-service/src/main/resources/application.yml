@@ -27,6 +27,20 @@ spring:
       host: localhost # 또는 컨테이너 이름
       port: 6379
       password:
+      lettuce:
+        pool:
+          max-active: 20 # 최대 커넥션 수
+          max-idle: 5 # 풀에서 유지 가능한 커넥션 최대 수
+          min-idle: 1 # 풀에서 유지 가능한 커넥션 최소 수
+          max-wait: 1000ms # 커넥션 요청 시 최대 대기시간(1초)
+  cache:
+    type: redis               # 캐시 타입 Redis
+    redis:
+      time-to-live: 600000    # 기본 TTL 10분 (밀리초)
+      key-prefix: "cache:"    # 키 접두사
+      cache-null-values: false # null X
+      use-key-prefix: true # 접두사 true
+
 
   application:
     name: user-service
@@ -49,12 +63,6 @@ management:
 logging:
   level:
     org.springframework: INFO
-
-
-
-server:
-  port: 8100
-
 
 jwt:
   secret:
