@@ -46,6 +46,9 @@ public enum ErrorCode {
     INVALID_STOCK_AMOUNT(HttpStatus.BAD_REQUEST, "차감할 수량은 0보다 커야 합니다"),
 
     // Order
+    ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "주문을 찾을 수 없습니다."),
+    ORDER_STATUS_CHANGE_INVALID(HttpStatus.BAD_REQUEST, "잘못된 주문 상태 전이입니다."),
+    ORDER_ALREADY_FINAL(HttpStatus.CONFLICT, "이미 완료되거나 취소된 주문은 상태를 변경할 수 없습니다."),
 
     // Delivery
     DELIVERY_NOT_FOUND(HttpStatus.NOT_FOUND, "배송을 찾을 수 없습니다."),

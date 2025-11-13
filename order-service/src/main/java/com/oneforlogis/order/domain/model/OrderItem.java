@@ -39,6 +39,22 @@ public class OrderItem extends BaseEntity {
     @Builder
     public OrderItem(UUID productId, String productName, 
                      BigDecimal unitPrice, Integer quantity) {
+        if (productId == null) {
+            throw new IllegalArgumentException("상품 ID는 필수입니다.");
+        }
+        if (productName == null || productName.isBlank()) {
+            throw new IllegalArgumentException("상품명은 필수입니다.");
+        }
+        if (unitPrice == null) {
+            throw new IllegalArgumentException("단가는 필수입니다.");
+        }
+        if (quantity == null || quantity <= 0) {
+            throw new IllegalArgumentException("수량은 1 이상이어야 합니다.");
+        }
+        if (unitPrice.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("단가는 0 이상이어야 합니다.");
+        }
+
         this.productId = productId;
         this.productName = productName;
         this.unitPrice = unitPrice;
@@ -52,6 +68,15 @@ public class OrderItem extends BaseEntity {
     public void updateQuantity(Integer quantity) {
         this.quantity = quantity;
         this.lineTotal = this.unitPrice.multiply(BigDecimal.valueOf(quantity));
+    }
+
+    /**
+     * OrderItem 생성 정적 팩토리 메서드
+     */
+    public static OrderItem from(UUID productId, String productName,
+                                 BigDecimal unitPrice, Integer quantity) {
+        // Builder 대신 생성자를 직접 호출하여 lineTotal이 자동 계산되도록 함
+        return new OrderItem(productId, productName, unitPrice, quantity);
     }
 }
 
