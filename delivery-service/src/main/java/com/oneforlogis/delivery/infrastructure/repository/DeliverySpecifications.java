@@ -1,6 +1,6 @@
 package com.oneforlogis.delivery.infrastructure.repository;
 
-import com.oneforlogis.delivery.application.dto.DeliverySearchCond;
+import com.oneforlogis.delivery.application.dto.request.DeliverySearchCond;
 import com.oneforlogis.delivery.domain.model.Delivery;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;

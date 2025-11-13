@@ -1,4 +1,4 @@
-package com.oneforlogis.delivery.application.dto;
+package com.oneforlogis.delivery.application.dto.response;
 
 import com.oneforlogis.delivery.domain.model.DeliveryRoute;
 import com.oneforlogis.delivery.domain.model.DeliveryRouteStatus;

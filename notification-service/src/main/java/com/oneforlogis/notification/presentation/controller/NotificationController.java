@@ -1,6 +1,8 @@
 package com.oneforlogis.notification.presentation.controller;
 
 import com.oneforlogis.common.api.ApiResponse;
+import com.oneforlogis.common.exception.CustomException;
+import com.oneforlogis.common.exception.ErrorCode;
 import com.oneforlogis.common.security.UserPrincipal;
 import com.oneforlogis.notification.application.service.ExternalApiLogService;
 import com.oneforlogis.notification.application.service.NotificationService;
@@ -81,9 +83,15 @@ public class NotificationController {
         log.info("[NotificationController] POST /api/v1/notifications/manual - from: {}, to: {}",
                 userPrincipal.username(), request.recipientSlackId());
 
-        // user-service에서 발신자 정보 조회
-        UserResponse userResponse = userServiceClient.getUserByUsername(userPrincipal.username())
-                .data();
+        // user-service에서 발신자 정보 조회 (PR #75 패턴 적용: 응답 검증)
+        ApiResponse<UserResponse> userApiResponse = userServiceClient.getUserByUsername(userPrincipal.username());
+
+        if (userApiResponse == null || userApiResponse.data() == null) {
+            log.error("[NotificationController] user-service 응답이 null입니다 - username: {}", userPrincipal.username());
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        UserResponse userResponse = userApiResponse.data();
 
         NotificationResponse response = notificationService.sendManualNotification(
                 request,

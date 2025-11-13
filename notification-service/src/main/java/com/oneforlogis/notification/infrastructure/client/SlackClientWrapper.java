@@ -73,10 +73,14 @@ public class SlackClientWrapper {
         return response;
     }
 
-    // 에러 응답 생성 (Fallback)
+    // 에러 응답 생성 (Fallback) - Priority 2-2: error 필드 설정
     private SlackMessageResponse createErrorResponse(String errorCode, String errorMessage) {
-        SlackMessageResponse errorResponse = new SlackMessageResponse();
-        // Note: SlackMessageResponse는 final 필드라 직접 설정 불가 - 실제로는 Builder 패턴 필요
+        SlackMessageResponse errorResponse = SlackMessageResponse.builder()
+                .ok(false)
+                .error(errorCode != null ? errorCode : "UNKNOWN_ERROR")
+                .warning(errorMessage)
+                .build();
+
         log.warn("[SlackClientWrapper] Returning fallback error response: {} - {}", errorCode, errorMessage);
         return errorResponse;
     }
