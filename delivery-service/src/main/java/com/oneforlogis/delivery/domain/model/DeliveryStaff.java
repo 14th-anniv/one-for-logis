@@ -51,6 +51,9 @@ public class DeliveryStaff {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    @Column(name = "last_assigned_at")
+    private LocalDateTime lastAssignedAt;
+
     public static DeliveryStaff create(
             UUID hubId,
             DeliveryStaffType staffType,
@@ -75,5 +78,9 @@ public class DeliveryStaff {
 
     public Long getId() {
         return this.staffId;
+    }
+
+    public void updateLastAssignedAt(LocalDateTime time) {
+        this.lastAssignedAt = time;
     }
 }
