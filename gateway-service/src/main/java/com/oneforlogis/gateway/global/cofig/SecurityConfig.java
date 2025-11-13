@@ -47,12 +47,18 @@ class SecurityConfig {
       .cors(Customizer.withDefaults())
 			.csrf(ServerHttpSecurity.CsrfSpec::disable)
 			.authorizeExchange(exchanges -> exchanges
-				.pathMatchers("/api/v1/users/login",
-					"/api/v1/users/signup",
-					"/swagger-ui/**",
-					"/v3/api-docs/**",
-					"/actuator/**",
-					"/health/**"
+				.pathMatchers(            "/api/v1/internal/**",
+                        "/api/v1/users/login",
+                        "/api/v1/users/signup",
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**",
+                        "/api/v1/*/swagger-ui/**",
+                        "/api/v1/*/v3/api-docs/**",
+                        "/webjars/**",
+                        "/swagger-resources/**",
+                        "/actuator/**",
+                        "/health/**"
 				)
 				.permitAll()
 				.anyExchange().authenticated()
