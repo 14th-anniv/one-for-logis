@@ -39,6 +39,12 @@ public class DeliveryStaffController {
             Pageable pageable
     ) {
         Page<DeliveryStaffResponse> page = deliveryStaffService.getStaffByHub(hubId, pageable);
-        return ApiResponse.success(page.getContent()); // 공통 응답이 리스트 기반이면 content만 반환
+        return ApiResponse.success(page.getContent());
+    }
+
+    @GetMapping("/{hubId}/next")
+    public ApiResponse<DeliveryStaffResponse> getNextStaff(@PathVariable UUID hubId) {
+        DeliveryStaffResponse res = deliveryStaffService.getNextStaff(hubId);
+        return ApiResponse.success(res);
     }
 }
