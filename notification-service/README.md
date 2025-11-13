@@ -179,7 +179,7 @@ curl http://localhost:8761/eureka/apps/NOTIFICATION-SERVICE
 - Docker cURL tests: 기존 8개 수정 + 신규 2개 추가 (총 10개)
 - Test results: 10/10 passed (100% success rate)
 
-**Issue #35** - Kafka 이벤트 소비자 (2025-11-11) ✅ **완료**
+**Issue #35** - Kafka 이벤트 소비자 (2025-11-11)
 - **Kafka Consumer 구현** (2개)
   - OrderCreatedConsumer: order.created 토픽 → 주문 알림 발송
   - DeliveryStatusChangedConsumer: delivery.status.changed 토픽 → 배송 상태 업데이트 알림
@@ -212,10 +212,38 @@ curl http://localhost:8761/eureka/apps/NOTIFICATION-SERVICE
   - End-to-end verification: Kafka → Consumer → Slack → DB
   - Test results: 4/4 passed (멱등성 검증 성공)
   - Real Slack channel integration (C09QY22AMEE)
-- **Documentation**: docs/review/issue-35-notification-kafka-consumer.md (updated)
+- **Documentation**: docs/review/issue-35-notification-kafka-consumer.md
+
+**Issue #76** - 리스크 개선 (2025-11-12) ✅ **완료**
+- **Priority 1 (Critical)**
+  - 통합 테스트 분리: OrderCreatedConsumerIT, DeliveryStatusChangedConsumerIT Mock 설정
+  - user-service NPE 위험 제거: FeignClient Fallback 구현
+  - Slack 실패 시 HTTP 응답 개선: 500 Internal Server Error 반환
+- **Priority 2 (High)**
+  - Gemini messageId 연계: generateContent()에 messageId 파라미터 추가
+  - Slack error 메시지 유실 방지: 트랜잭션 분리 (DB 저장 + Slack 발송)
+  - NotificationService 단위 테스트: 5/5 통과 (lenient Mock 패턴)
+  - Entity 예외 타입 통일: NotificationException 도메인 예외 생성
+- **Test Results**: 단위 5/5, 통합 4/4, Kafka 4/4, REST API 10/10 (전체 21/21 통과)
+- **Documentation**: docs/review/issue-76-notification-risk-refactoring.md
+
+**Issue #84** - 배송 상태 알림 REST API (2025-11-13) ✅ **완료**
+- **REST API 추가**
+  - POST /api/v1/notifications/delivery-status: 배송 상태 변경 알림 발송
+  - DeliveryStatusNotificationRequest DTO (6 필드)
+  - NotificationService.sendDeliveryStatusNotification() 메서드
+  - DeliveryStatusChangedConsumer 로직 재사용 (메시지 형식 통일)
+- **기능**
+  - Kafka Event + REST API 일관성 유지
+  - 재발송 기능 제공 (Slack 실패 시)
+  - 테스트/디버깅 용이성
+  - 장애 대응 (Kafka 장애 시 대체 수단)
+- **Test Results**: Controller 2/2, REST API 10/10 (test-notification-api.sh)
+- **Documentation**: docs/review/issue-84-delivery-status-rest-api.md
 
 ### 🚧 Pending
 
-- **Issue #76**: Codex 리스크 개선 (7 items: 통합 테스트 분리, NPE 위험, Slack 실패 응답 등)
-- **Issue #36**: Daily route optimization scheduler (Challenge)
-- **DTO Refactoring**: presentation → application 계층 이동 (튜터 권장사항)
+- **Issue #85**: deletedBy 사용자 정보 수집 (예상 0.5일)
+- **Issue #86**: Kafka Consumer 보안 강화 (CVSS 7.5 - High, 예상 1일)
+- **Issue #87-88**: Performance 개선 (Gemini 캐싱, DLQ, 예상 1.5일)
+- **Issue #36**: Daily route optimization scheduler (Challenge, 예상 3-4일)

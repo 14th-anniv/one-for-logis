@@ -53,6 +53,25 @@ class OrderCreatedConsumerIT {
     void setUp() {
         // 테스트 간 격리: DB 초기화
         notificationRepository.findAll().forEach(notificationRepository::delete);
+
+        // Mock 설정: Gemini API 응답
+        com.oneforlogis.notification.infrastructure.client.gemini.GeminiResponse geminiResponse =
+            org.mockito.Mockito.mock(com.oneforlogis.notification.infrastructure.client.gemini.GeminiResponse.class);
+        org.mockito.Mockito.when(geminiResponse.getContent()).thenReturn("2024-12-31 14:00까지 발송 완료 바랍니다.");
+        org.mockito.Mockito.when(geminiClientWrapper.generateContent(
+            org.mockito.Mockito.any(), org.mockito.Mockito.any()
+        )).thenReturn(geminiResponse);
+
+        // Mock 설정: Slack API 성공 응답
+        com.oneforlogis.notification.infrastructure.client.slack.SlackMessageResponse slackResponse =
+            com.oneforlogis.notification.infrastructure.client.slack.SlackMessageResponse.builder()
+                .ok(true)
+                .channel("U123456")
+                .ts("1234567890.123456")
+                .build();
+        org.mockito.Mockito.when(slackClientWrapper.postMessage(
+            org.mockito.Mockito.any(), org.mockito.Mockito.any()
+        )).thenReturn(slackResponse);
     }
 
     // delivery-service 패턴: 인라인 KafkaTemplate 생성

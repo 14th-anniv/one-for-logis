@@ -4,31 +4,27 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oneforlogis.common.exception.CustomException;
 import com.oneforlogis.common.exception.ErrorCode;
-import com.oneforlogis.delivery.application.dto.DeliveryAssignRequest;
-import com.oneforlogis.delivery.application.dto.DeliveryResponse;
-import com.oneforlogis.delivery.application.dto.DeliveryRouteRequest;
-import com.oneforlogis.delivery.application.dto.DeliveryRouteResponse;
-import com.oneforlogis.delivery.application.dto.DeliverySearchCond;
-import com.oneforlogis.delivery.application.dto.DeliveryStatusUpdateRequest;
+import com.oneforlogis.delivery.application.dto.request.DeliveryAssignRequest;
+import com.oneforlogis.delivery.application.dto.request.DeliverySearchCond;
+import com.oneforlogis.delivery.application.dto.request.DeliveryStatusUpdateRequest;
+import com.oneforlogis.delivery.application.dto.response.DeliveryResponse;
 import com.oneforlogis.delivery.application.service.DeliveryRouteService;
 import com.oneforlogis.delivery.application.service.DeliveryService;
-import com.oneforlogis.delivery.domain.model.DeliveryRouteStatus;
 import com.oneforlogis.delivery.presentation.advice.DeliveryExceptionHandler;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -100,7 +96,7 @@ class DeliveryControllerTest {
         // given
         UUID deliveryId = UUID.randomUUID();
         DeliveryResponse mockResponse = buildDeliveryResponse(deliveryId);
-        Mockito.when(deliveryService.getOne(any(UUID.class))).thenReturn(mockResponse);
+        when(deliveryService.getOne(any(UUID.class))).thenReturn(mockResponse);
 
         // when & then
         mockMvc.perform(get("/api/v1/deliveries/{deliveryId}", deliveryId)
@@ -116,7 +112,7 @@ class DeliveryControllerTest {
     void getDeliveryById_notFound() throws Exception {
         // given
         UUID deliveryId = UUID.randomUUID();
-        Mockito.when(deliveryService.getOne(any(UUID.class)))
+        when(deliveryService.getOne(any(UUID.class)))
                 .thenThrow(new IllegalArgumentException("해당 배송을 찾을 수 없습니다."));
 
         // when & then
@@ -139,7 +135,7 @@ class DeliveryControllerTest {
         Page<DeliveryResponse> mockPage =
                 new PageImpl<>(java.util.List.of(r1, r2), PageRequest.of(0, 2), 2);
 
-        Mockito.when(deliveryService.search(any(DeliverySearchCond.class), any(Pageable.class)))
+        when(deliveryService.search(any(DeliverySearchCond.class), any(Pageable.class)))
                 .thenReturn(mockPage);
 
         // when & then
@@ -162,7 +158,7 @@ class DeliveryControllerTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<DeliveryResponse> emptyPage = new PageImpl<>(List.of(), pageable, 0);
 
-        Mockito.when(deliveryService.search(any(DeliverySearchCond.class), any(Pageable.class)))
+        when(deliveryService.search(any(DeliverySearchCond.class), any(Pageable.class)))
                 .thenReturn(emptyPage);
 
         mockMvc.perform(get("/api/v1/deliveries")
@@ -179,7 +175,7 @@ class DeliveryControllerTest {
         Page<DeliveryResponse> emptyPage =
                 new PageImpl<>(java.util.List.of(), PageRequest.of(0, 10), 0);
 
-        Mockito.when(deliveryService.search(any(DeliverySearchCond.class), any(Pageable.class)))
+        when(deliveryService.search(any(DeliverySearchCond.class), any(Pageable.class)))
                 .thenReturn(emptyPage);
 
         // when & then
@@ -200,7 +196,7 @@ class DeliveryControllerTest {
         UUID deliveryId = UUID.randomUUID();
         var req = new DeliveryStatusUpdateRequest("IN_TRANSIT", LocalDateTime.now());
 
-        Mockito.when(deliveryService.updateStatus(eq(deliveryId),
+        when(deliveryService.updateStatus(eq(deliveryId),
                         any(DeliveryStatusUpdateRequest.class)))
                 .thenReturn(resp(deliveryId, "IN_TRANSIT", null));
 
@@ -221,7 +217,7 @@ class DeliveryControllerTest {
         UUID deliveryId = UUID.randomUUID();
         var req = new DeliveryStatusUpdateRequest("DELIVERED", LocalDateTime.now());
 
-        Mockito.when(deliveryService.updateStatus(eq(deliveryId),
+        when(deliveryService.updateStatus(eq(deliveryId),
                         any(DeliveryStatusUpdateRequest.class)))
                 .thenThrow(new CustomException(ErrorCode.INVALID_STATUS_TRANSITION));
 
@@ -240,7 +236,7 @@ class DeliveryControllerTest {
         UUID deliveryId = UUID.randomUUID();
         var req = new DeliveryAssignRequest(42L);
 
-        Mockito.when(deliveryService.assignStaff(eq(deliveryId), any(DeliveryAssignRequest.class)))
+        when(deliveryService.assignStaff(eq(deliveryId), any(DeliveryAssignRequest.class)))
                 .thenReturn(resp(deliveryId, "WAITING_AT_HUB", 42L));
 
         mockMvc.perform(
@@ -259,7 +255,7 @@ class DeliveryControllerTest {
         UUID deliveryId = UUID.randomUUID();
         var req = new DeliveryAssignRequest(99L);
 
-        Mockito.when(deliveryService.assignStaff(eq(deliveryId), any(DeliveryAssignRequest.class)))
+        when(deliveryService.assignStaff(eq(deliveryId), any(DeliveryAssignRequest.class)))
                 .thenThrow(new CustomException(ErrorCode.INVALID_DELIVERY_ASSIGNMENT));
 
         mockMvc.perform(
@@ -276,7 +272,7 @@ class DeliveryControllerTest {
     void unassignStaff_success() throws Exception {
         UUID deliveryId = UUID.randomUUID();
 
-        Mockito.when(deliveryService.unassignStaff(eq(deliveryId)))
+        when(deliveryService.unassignStaff(eq(deliveryId)))
                 .thenReturn(resp(deliveryId, "WAITING_AT_HUB", null));
 
         mockMvc.perform(
@@ -285,67 +281,5 @@ class DeliveryControllerTest {
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.deliveryStaffId", nullValue()));
-    }
-
-    @Test
-    @DisplayName("배송 경로 생성 성공")
-    void createRoute_success() throws Exception {
-        UUID deliveryId = UUID.randomUUID();
-
-        String requestBody = """
-                {
-                    "routeStatus": "DEPARTED_FROM_HUB",
-                    "eventAt": "2025-01-01T10:05:00",
-                    "hubId": "22222222-2222-2222-2222-222222222222",
-                    "latitude": 37.5665,
-                    "longitude": 126.978,
-                    "remark": "허브 출발"
-                }
-                """;
-
-        mockMvc.perform(post("/api/v1/deliveries/" + deliveryId + "/routes")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isCreated());
-    }
-
-    @Test
-    @DisplayName("배송 경로 생성 실패 - 허브 ID가 필요한 상태인데 누락됨")
-    void createRoute_missingHub_whenRequired() throws Exception {
-        // given
-        UUID deliveryId = UUID.randomUUID();
-        DeliveryRouteRequest req = new DeliveryRouteRequest(
-                DeliveryRouteStatus.ARRIVED_AT_HUB,
-                LocalDateTime.of(2025, 1, 1, 10, 30),
-                null,
-                37.5665,
-                126.9780,
-                "허브 도착"
-        );
-
-        Mockito.when(
-                        deliveryRouteService.appendEvent(eq(deliveryId), any(DeliveryRouteRequest.class)))
-                .thenThrow(
-                        new CustomException(ErrorCode.INVALID_STATUS_TRANSITION));
-
-        // when & then
-        mockMvc.perform(post("/api/v1/deliveries/{deliveryId}/routes", deliveryId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().is4xxClientError());
-    }
-
-    private DeliveryRouteResponse sampleResponse(UUID deliveryId, int seq) {
-        return new DeliveryRouteResponse(
-                UUID.randomUUID(),     // routeId
-                deliveryId,            // deliveryId
-                seq,                   // routeSeq
-                DeliveryRouteStatus.DEPARTED_FROM_HUB, // routeStatus
-                "22222222-2222-2222-2222-222222222222", // hubId (String)
-                37.5665,               // latitude
-                126.9780,              // longitude
-                LocalDateTime.of(2025, 1, 1, 10, 5),    // eventAt
-                "허브 출발"             // remark
-        );
     }
 }

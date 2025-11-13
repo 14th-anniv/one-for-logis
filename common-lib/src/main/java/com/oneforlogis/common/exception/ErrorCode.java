@@ -41,24 +41,32 @@ public enum ErrorCode {
 
     // Product
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다."),
+    STOCK_NOT_ENOUGH(HttpStatus.BAD_REQUEST, "재고가 충분하지 않습니다."),
+    INVALID_RESTOCK_AMOUNT(HttpStatus.BAD_REQUEST, "복원할 수량은 0보다 커야 합니다."),
+    INVALID_STOCK_AMOUNT(HttpStatus.BAD_REQUEST, "차감할 수량은 0보다 커야 합니다"),
 
     // Order
 
     // Delivery
     DELIVERY_NOT_FOUND(HttpStatus.NOT_FOUND, "배송을 찾을 수 없습니다."),
-
     INVALID_STATUS_TRANSITION(HttpStatus.BAD_REQUEST, "잘못된 상태 전이 요청입니다."),
     INVALID_DELIVERY_ASSIGNMENT(HttpStatus.BAD_REQUEST, "배송 담당자는 허브 대기 상태에서만 배정할 수 있습니다."),
+    DUPLICATE_DELIVERY_STAFF(HttpStatus.CONFLICT, "이미 배송 담당자가 지정되어 있습니다."),
+    INVALID_DELIVERY_STATUS(HttpStatus.BAD_REQUEST, "해당 상태에서는 담당자를 등록할 수 없습니다."),
 
     // Notification
     NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다."),
     NOTIFICATION_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "알림 발송에 실패했습니다."),
+    NOTIFICATION_INVALID_SENDER(HttpStatus.BAD_REQUEST, "발신자 정보가 유효하지 않습니다."),
+    NOTIFICATION_INVALID_RECIPIENT(HttpStatus.BAD_REQUEST, "수신자 정보가 유효하지 않습니다."),
+    NOTIFICATION_INVALID_CONTENT(HttpStatus.BAD_REQUEST, "메시지 내용이 유효하지 않습니다."),
 
     // Redis
     REDIS_SERIALIZATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Redis 직렬화 중 오류가 발생했습니다."),
     REDIS_DESERIALIZATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Redis 역직렬화 중 오류가 발생했습니다."),
 
-    // user
+    // User
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
     DUPLICATE_USERNAME(HttpStatus.CONFLICT, "이미 존재하는 아이디입니다."),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "이미 존재하는 이메일입니다."),
     DUPLICATE_SLACK_ID(HttpStatus.CONFLICT, "이미 존재하는 슬렉 아이디입니다."),

@@ -110,4 +110,4 @@ jwt:
     key: ${JWT_SECRET_KEY}
 
   admin:
-    token: ${ADMIN_TOKEN}
+    token: ${JWT_ADMIN_TOKEN}

@@ -1,10 +1,9 @@
+server:
+  port: 8761
+
 spring:
   profiles:
     active: local
-
-# 포트 8761
-server:
-  port: 8761
 
 eureka:
   client:
@@ -22,4 +21,5 @@ management:
 
 logging:
   level:
+    org.springframework.cloud.netflix.eureka: INFO
     org.springframework.cloud.netflix.eureka: INFO
