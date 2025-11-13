@@ -7,7 +7,10 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @EnableFeignClients
 @EnableDiscoveryClient
-@SpringBootApplication(scanBasePackages = "com.oneforlogis")
+@SpringBootApplication(scanBasePackages = {
+        "com.oneforlogis.company",
+        "com.oneforlogis.common"
+})
 public class CompanyServiceApplication {
 
     public static void main(String[] args) {

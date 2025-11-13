@@ -1,4 +1,4 @@
-package com.oneforlogis.company.global;
+package com.oneforlogis.product.global;
 
 import com.oneforlogis.common.security.SecurityConfigBase;
 import org.springframework.context.annotation.Configuration;
