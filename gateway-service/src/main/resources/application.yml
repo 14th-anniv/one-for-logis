@@ -28,7 +28,7 @@ spring:
         - id: company-service
           uri: lb://COMPANY-SERVICE
           predicates:
-            - Path=/api/v1/companies/**
+            - Path=/api/v1/companies/**, /api/v1/internal/companies/**
 
         - id: hub-service
           uri: lb://HUB-SERVICE
@@ -53,7 +53,7 @@ spring:
         - id: product-service
           uri: lb://PRODUCT-SERVICE
           predicates:
-            - Path=/api/v1/products/**
+            - Path=/api/v1/products/**, /api/v1/internal/products/**
 
         - id: user-service # 라우트 식별자
           uri: lb://USER-SERVICE # 'users-service'라는 이름으로 로드 밸런싱된 서비스로 라우팅
