@@ -53,14 +53,19 @@ public class DeliveryStaffService {
 
     @Transactional
     public Page<DeliveryStaffResponse> getStaffByHub(UUID hubId, Pageable pageable) {
-        return deliveryStaffRepository.findByHubId(hubId, pageable)
-                .map(s -> new DeliveryStaffResponse(
-                        s.getStaffId(),
-                        s.getHubId(),
-                        s.getStaffType(),
-                        s.getSlackId(),
-                        s.getAssignOrder(),
-                        s.getIsActive()
-                ));
+        Page<DeliveryStaff> page = deliveryStaffRepository.findByHubId(hubId, pageable);
+
+        if (page.isEmpty()) {
+            throw new CustomException(ErrorCode.HUB_NOT_FOUND);
+        }
+
+        return page.map(s -> new DeliveryStaffResponse(
+                s.getStaffId(),
+                s.getHubId(),
+                s.getStaffType(),
+                s.getSlackId(),
+                s.getAssignOrder(),
+                s.getIsActive()
+        ));
     }
 }
