@@ -1,5 +1,7 @@
 package com.oneforlogis.notification.domain.model;
 
+import com.oneforlogis.common.exception.CustomException;
+import com.oneforlogis.common.exception.ErrorCode;
 import com.oneforlogis.common.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -124,42 +126,52 @@ public class Notification extends BaseEntity {
     }
 
     /**
+     * 메시지 내용 업데이트 (Priority 2-1: Gemini 응답 후 메시지 업데이트)
+     */
+    public void updateMessageContent(String newContent) {
+        if (newContent == null || newContent.isBlank()) {
+            throw new CustomException(ErrorCode.NOTIFICATION_INVALID_CONTENT);
+        }
+        this.messageContent = newContent;
+    }
+
+    /**
      * 엔티티 저장 전 검증
      */
     @PrePersist
     @PreUpdate
     private void validateEntity() {
-        // USER 타입일 경우 sender 정보 필수
+        // USER 타입일 경우 sender 정보 필수 (Priority 2-4: CustomException 사용)
         if (senderType == SenderType.USER) {
             if (senderUsername == null || senderUsername.isBlank()) {
-                throw new IllegalStateException("USER 타입 메시지는 senderUsername이 필수입니다.");
+                throw new CustomException(ErrorCode.NOTIFICATION_INVALID_SENDER);
             }
             if (senderSlackId == null || senderSlackId.isBlank()) {
-                throw new IllegalStateException("USER 타입 메시지는 senderSlackId가 필수입니다.");
+                throw new CustomException(ErrorCode.NOTIFICATION_INVALID_SENDER);
             }
             if (senderName == null || senderName.isBlank()) {
-                throw new IllegalStateException("USER 타입 메시지는 senderName이 필수입니다.");
+                throw new CustomException(ErrorCode.NOTIFICATION_INVALID_SENDER);
             }
         }
 
         // SYSTEM 타입일 경우 sender 정보는 null이어야 함
         if (senderType == SenderType.SYSTEM) {
             if (senderUsername != null || senderSlackId != null || senderName != null) {
-                throw new IllegalStateException("SYSTEM 타입 메시지는 sender 정보가 null이어야 합니다.");
+                throw new CustomException(ErrorCode.NOTIFICATION_INVALID_SENDER);
             }
         }
 
         // 수신자 정보 필수
         if (recipientSlackId == null || recipientSlackId.isBlank()) {
-            throw new IllegalStateException("recipientSlackId는 필수입니다.");
+            throw new CustomException(ErrorCode.NOTIFICATION_INVALID_RECIPIENT);
         }
         if (recipientName == null || recipientName.isBlank()) {
-            throw new IllegalStateException("recipientName은 필수입니다.");
+            throw new CustomException(ErrorCode.NOTIFICATION_INVALID_RECIPIENT);
         }
 
         // 메시지 내용 필수
         if (messageContent == null || messageContent.isBlank()) {
-            throw new IllegalStateException("messageContent는 필수입니다.");
+            throw new CustomException(ErrorCode.NOTIFICATION_INVALID_CONTENT);
         }
     }
 }

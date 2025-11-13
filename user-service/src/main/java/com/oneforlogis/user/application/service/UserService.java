@@ -1,13 +1,20 @@
 package com.oneforlogis.user.application.service;
 
 import java.time.Duration;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import com.oneforlogis.common.api.ApiResponse;
+import com.oneforlogis.common.api.PageResponse;
 import com.oneforlogis.common.exception.CustomException;
 import com.oneforlogis.common.exception.ErrorCode;
 import com.oneforlogis.common.model.Role;
@@ -16,7 +23,9 @@ import com.oneforlogis.user.domain.repository.UserRepository;
 import com.oneforlogis.user.global.util.JwtUtil;
 import com.oneforlogis.user.infrastructure.config.RedisService;
 import com.oneforlogis.user.presentation.request.UserLoginRequest;
+import com.oneforlogis.user.presentation.request.UserRoleUpdateRequest;
 import com.oneforlogis.user.presentation.request.UserSignupRequest;
+import com.oneforlogis.user.presentation.request.UserStatusRequest;
 
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
@@ -118,6 +127,43 @@ public class UserService {
 		httpResponse.addCookie(newRefreshTokenCookie);
 
 		log.info("로그인 성공: AT, RT 발급 및 Redis 저장 완료. User: {}", user.getName());
+	}
+
+	// 회원가입 요청 승인 or 거부
+	public void updateStatus(UUID userId, UserStatusRequest request) {
+
+		User user = userRepository.findById(userId).orElseThrow(
+			() -> new CustomException(ErrorCode.NOT_FOUND_NAME)
+		);
+
+		user.updateStatus(request.status());
+	}
+
+	// 권한 변경
+	public void updateRole(UUID userId, UserRoleUpdateRequest request) {
+
+		User user = userRepository.findById(userId).orElseThrow(
+			() -> new CustomException(ErrorCode.NOT_FOUND_NAME)
+		);
+
+		user.updateRole(request.role());
+	}
+
+	// 마이페이지 조회
+	@Transactional(readOnly = true)
+	public User getMyPage(UUID id) {
+		return userRepository.findByIdAndDeletedAtIsNull(id).orElseThrow(
+			() -> new CustomException(ErrorCode.NOT_FOUND_NAME)
+		);
+	}
+
+	// 관리자 전용 조회
+	@Transactional(readOnly = true)
+	@Cacheable(value = "adminUsers", key = "#keyword + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort")
+	public PageResponse<User> adminSearch(String keyword, Pageable pageable) {
+		Page<User> userPage = userRepository.searchAllIncludingDeleted(keyword, pageable);
+
+		return PageResponse.fromPage(userPage);
 	}
 
 	// 이전 토큰 무효화

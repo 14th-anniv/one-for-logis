@@ -1,6 +1,7 @@
 package com.oneforlogis.delivery.domain.repository;
 
 import com.oneforlogis.delivery.domain.model.DeliveryRoute;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,4 +17,6 @@ public interface DeliveryRouteRepository extends JpaRepository<DeliveryRoute, UU
     Optional<DeliveryRoute> findTopByDeliveryIdAndRouteSeqLessThanOrderByRouteSeqDesc(
             UUID deliveryId, int routeSeq
     );
+
+    List<DeliveryRoute> findByDeliveryIdOrderByRouteSeqAsc(UUID deliveryId);
 }

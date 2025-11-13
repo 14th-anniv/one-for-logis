@@ -37,3 +37,9 @@ management:
 logging:
   level:
     org.springframework: INFO
+
+springdoc:
+  swagger-ui:
+    path: /api/v1/products/
+  api-docs:
+    path: /api/v1/products/v3/api-docs

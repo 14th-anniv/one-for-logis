@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public record ShortestRouteResponse(
-        @Schema(description = "경로 ID", example = "10")
+        @Schema(description = "경로 ID (직통 경로만 O)", example = "10")
         Long id,
 
         @Schema(
@@ -44,13 +44,13 @@ public record ShortestRouteResponse(
         )
         List<RouteEdgeResponse> routeEdges
 ) {
-        public static ShortestRouteResponse from(HubRoute route, HubResponse fromHub, HubResponse toHub, List<HubSimpleResponse> pathNodes, List<RouteEdgeResponse> routeEdges) {
+        public static ShortestRouteResponse fromResult(DijkstraResult result, HubResponse fromHub, HubResponse toHub, List<HubSimpleResponse> pathNodes, List<RouteEdgeResponse> routeEdges) {
                 return new ShortestRouteResponse(
-                        route.getId(),
+                        null,
                         HubSimpleResponse.of(fromHub),
                         HubSimpleResponse.of(toHub),
-                        route.getRouteDistance(),
-                        route.getRouteTime(),
+                        result.distance(),
+                        result.time(),
                         RouteType.RELAY,
                         pathNodes,
                         routeEdges

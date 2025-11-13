@@ -3,12 +3,18 @@ package com.oneforlogis.common.api;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.Collections;
 import java.util.List;
+
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import org.springframework.data.domain.Page;
 
 @Getter
 @Builder
+@NoArgsConstructor(force = true) // 기본 생성자 생성(Redis 캐시에서 역직렬화 시 필요)을 위한 옵션
+@AllArgsConstructor
 public class PageResponse<T> {
 
     private final List<T> content;

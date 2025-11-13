@@ -1,6 +1,7 @@
 package com.oneforlogis.notification.infrastructure.client.slack;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +17,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Slack API 키 검증 통합 테스트
  * 실제 Slack API를 호출하여 Bot Token의 유효성을 검증합니다.
+ *
+ * 실행 방법:
+ * - 환경 변수 설정: ENABLE_REAL_API_TESTS=true
+ * - Gradle: ./gradlew test -DENABLE_REAL_API_TESTS=true
+ * - IDE: Run Configuration에 환경 변수 추가
  */
 @SpringBootTest(properties = {
         "spring.kafka.bootstrap-servers=localhost:19092"  // 존재하지 않는 포트 (Kafka 비활성화)
 })
 @ActiveProfiles("test")
+@EnabledIfEnvironmentVariable(named = "ENABLE_REAL_API_TESTS", matches = "true")
 class SlackApiAuthIntegrationTest {
 
     private static final Logger log = LoggerFactory.getLogger(SlackApiAuthIntegrationTest.class);

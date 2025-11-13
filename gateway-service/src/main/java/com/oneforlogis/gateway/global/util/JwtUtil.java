@@ -6,6 +6,9 @@ import java.util.Date;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -21,9 +24,6 @@ import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -64,7 +64,7 @@ public class JwtUtil {
 		return BEARER_PREFIX +
 			Jwts.builder()
 				.setSubject(username)
-				.claim(AUTHORIZATION_KEY, role.getAuthority())
+				.claim("role", role.getAuthority())
 				.claim("userId", String.valueOf(userId))
 				.claim("userName", username)
 				.claim("jti", jti) // Blacklist 관리를 위한 JTI
@@ -83,7 +83,7 @@ public class JwtUtil {
 
 		return Jwts.builder()
 			.setSubject(username)
-			.claim(AUTHORIZATION_KEY, role.getAuthority())
+			.claim("role", role.getAuthority())
 			.claim("jti", jti)
 			.setExpiration(new Date(date.getTime() + REFRESH_TOKEN_TIME))
 			.setIssuedAt(date)
@@ -94,8 +94,8 @@ public class JwtUtil {
 	/**
 	 * HttpServletRequest Header에서 Access Token 값 가져오기
 	 */
-	public static String getJwtFromHeader(HttpServletRequest request) {
-		String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
+	public static String getJwtFromHeader(ServerHttpRequest request) {
+		String bearerToken = request.getHeaders().getFirst(AUTHORIZATION_HEADER);
 		log.info("JwtUtil - Authorization Header Raw Value: {}", bearerToken);
 		if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
 			return bearerToken.substring(7);
@@ -106,27 +106,21 @@ public class JwtUtil {
 	/**
 	 * Refresh Token을 HttpOnly 쿠키에 담아 반환
 	 */
-	public Cookie createRefreshTokenCookie(String refreshToken) {
-		Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken);
-		cookie.setHttpOnly(true); // HttpOnly 설정
-		// cookie.setSecure(true); // HTTPS 환경에서만 전송 (운영 환경 권장, 테스트 할 땐 비활성화)
-		cookie.setPath("/"); // 모든 경로에서 쿠키 접근 가능
-		cookie.setMaxAge(REFRESH_TOKEN_COOKIE_MAX_AGE); // 쿠키 만료 기간 14일
-		return cookie;
+	public ResponseCookie createRefreshTokenCookie(String refreshToken) {
+		return ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
+				.httpOnly(true)
+				.path("/")
+				.maxAge(REFRESH_TOKEN_COOKIE_MAX_AGE)
+				.build();
 	}
 
 	// HttpOnly쿠키 만료
-	public void deleteCookie(HttpServletResponse response, String cookieName) {
-		Cookie cookie = new Cookie(cookieName, null);
-		cookie.setMaxAge(0); // 즉시 만료
-		cookie.setPath("/");
-
-		// HttpOnly 설정 (Refresh Token과 같은 민감 정보는 항상 HttpOnly)
-		cookie.setHttpOnly(true);
-
-		// HTTPS 환경에서만 전송 (운영 환경 권장, 테스트 할 땐 비활성화)
-		// cookie.setSecure(true);
-
+	public void deleteCookie(ServerHttpResponse response, String cookieName) {
+		ResponseCookie cookie = ResponseCookie.from(cookieName, "")
+				.httpOnly(true)
+				.path("/")
+				.maxAge(0)
+				.build();
 		response.addCookie(cookie);
 	}
 
@@ -136,7 +130,12 @@ public class JwtUtil {
 	public boolean validateToken(String token) {
 		try {
 			// 서명 및 만료 검증
-			Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+			Claims claims = Jwts.parserBuilder()
+				.setSigningKey(key)
+				.setAllowedClockSkewSeconds(60) // 60초의 시간 오차 허용
+				.build()
+				.parseClaimsJws(token)
+				.getBody();
 
 			// 블랙리스트에 등록되어있는지 확인 (JTI 사용)
 			String jti = claims.get("jti", String.class);

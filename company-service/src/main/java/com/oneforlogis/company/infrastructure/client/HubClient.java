@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 /**
  * company <-> hub-service 통신 (외부 호출용 FeignClient)
  */
-@FeignClient(name = "hub-service", path = "/api/v1/hubs")
+@FeignClient(name = "hub-service", path = "/api/v1/internal/hubs")
 public interface HubClient {
 
     @GetMapping("/{hubId}")

@@ -40,12 +40,10 @@ public class CompanyController {
 
     private final CompanyService companyService;
 
-    // todo: security 제외하고 임의 작업 -> 개발 완료 후 로직 추가 [담당 허브/업체만 update]
-
     /**
      * 업체 등록
      */
-    @Operation(summary = "업체 등록", description = "새로운 업체를 등록합니다. 'MASTER, HUB_MANAGER(담당 허브)' 권한이 필요합니다.")
+    @Operation(summary = "업체 등록", description = "새로운 업체를 등록합니다. 'MASTER, HUB_MANAGER' 권한이 필요합니다.")
     @PreAuthorize("hasRole('MASTER') or hasRole('HUB_MANAGER')")
     @PostMapping
     public ResponseEntity<ApiResponse<CompanyCreateResponse>> createCompany(@RequestBody @Valid CompanyCreateRequest request){
@@ -56,7 +54,7 @@ public class CompanyController {
     /**
      * 업체 정보 수정
      */
-    @Operation(summary = "업체 수정", description = "업체 정보를 수정합니다. 'MASTER, HUB_MANAGER(담당 허브), COMPANY_MANAGER(담당 업체)' 권한이 필요합니다.")
+    @Operation(summary = "업체 수정", description = "업체 정보를 수정합니다. 'MASTER, HUB_MANAGER, COMPANY_MANAGER' 권한이 필요합니다.")
     @PreAuthorize("hasRole('MASTER') or hasRole('HUB_MANAGER') or hasRole('COMPANY_MANAGER')")
     @PatchMapping("/{companyId}")
     public ApiResponse<CompanyUpdateResponse> updateCompany(@PathVariable UUID companyId,
@@ -68,7 +66,7 @@ public class CompanyController {
     /**
      * 업체 정보 삭제
      */
-    @Operation(summary = "업체 삭제", description = "업체를 삭제합니다. 'MASTER, HUB_MANAGER(담당 허브)' 권한이 필요합니다.")
+    @Operation(summary = "업체 삭제", description = "업체를 삭제합니다. 'MASTER, HUB_MANAGER' 권한이 필요합니다.")
     @PreAuthorize("hasRole('MASTER') or hasRole('HUB_MANAGER')")
     @DeleteMapping("/{companyId}")
     public ResponseEntity<ApiResponse<Void>> deleteCompany(@PathVariable UUID companyId,

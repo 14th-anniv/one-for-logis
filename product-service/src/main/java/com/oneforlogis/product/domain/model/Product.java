@@ -1,5 +1,7 @@
 package com.oneforlogis.product.domain.model;
 
+import com.oneforlogis.common.exception.CustomException;
+import com.oneforlogis.common.exception.ErrorCode;
 import com.oneforlogis.common.model.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -73,5 +75,26 @@ public class Product extends BaseEntity {
 
     public void deleteProduct(String userName){
         this.markAsDeleted(userName);
+    }
+
+
+    /**
+     * order 제공
+     */
+    // 차감
+    public void decreaseStock(int amount) {
+        int restStock = this.quantity - amount;
+        if (restStock < 0) {
+            throw new CustomException(ErrorCode.STOCK_NOT_ENOUGH);
+        }
+        this.quantity = restStock;
+    }
+
+    // 증가 및 복원
+    public void increaseStock(int amount) {
+        if (amount <= 0) {
+            throw new CustomException(ErrorCode.INVALID_RESTOCK_AMOUNT);
+        }
+        this.quantity = this.quantity + amount;
     }
 }
