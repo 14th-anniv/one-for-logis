@@ -4,12 +4,14 @@ server:
 spring:
   profiles:
     active: local
+  config:
+    import: optional:file:.env[.properties]
 
   # spring.data.redis가 없어서 RedisConfig에서 오류 발생했던 것. (25.11.11)
   data:
     redis:
-      host: localhost # 또는 컨테이너 이름
-      port: 6379
+      host: ${REDIS_HOST} # 또는 컨테이너 이름
+      port: ${REDIS_PORT}
       password:
 
   main:
@@ -24,41 +26,49 @@ spring:
           enabled: true # 서비스 디스커버리를 통해 동적으로 라우트를 생성하도록 설정
       routes:
         - id: company-service
-          uri: lb://company-service
+          uri: lb://COMPANY-SERVICE
           predicates:
             - Path=/api/v1/companies/**
 
         - id: hub-service
-          uri: lb://hub-service
+          uri: lb://HUB-SERVICE
           predicates:
-            - Path=/api/v1/hubs/**
+            - Path=/api/v1/hubs/**, /api/v1/internal/hubs/**
 
         - id: notification-service
-          uri: lb://notification-service
+          uri: lb://NOTIFICATION-SERVICE
           predicates:
             - Path=/api/v1/notifications/**
 
         - id: order-service
-          uri: lb://order-service
+          uri: lb://ORDER-SERVICE
           predicates:
             - Path=/api/v1/orders/**
 
+        - id: delivery-service
+          uri: lb://DELIVERY-SERVICE
+          predicates:
+            - Path=/api/v1/deliveries/**
+
         - id: product-service
-          uri: lb://product-service
+          uri: lb://PRODUCT-SERVICE
           predicates:
             - Path=/api/v1/products/**
 
         - id: user-service # 라우트 식별자
-          uri: lb://user-service # 'users-service'라는 이름으로 로드 밸런싱된 서비스로 라우팅
+          uri: lb://USER-SERVICE # 'users-service'라는 이름으로 로드 밸런싱된 서비스로 라우팅
           predicates:
             - Path=/api/v1/users/** # /users/** 경로로 들어오는 요청을 이 라우트로 처리
+
+  webflux:
+    static-path-pattern: /no-static/**
 
 eureka:
   client:
     register-with-eureka: true  # false가 아니라 true로 둬야 함. (11.11)
     fetch-registry: true
     service-url:
-      defaultZone: http://localhost:8761/eureka   # 끝에 /는 없어야 함 (25.11.11)
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}  # 끝에 /는 없어야 함 (25.11.11)
 
 management:
   endpoints:
@@ -66,13 +76,34 @@ management:
       exposure:
         include: health,info,gateway
 
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: User API
+        url: ${GATEWAY_SERVER_URL:http://localhost:8000}/api/v1/users/v3/api-docs
+      - name: Hub API
+        url: ${GATEWAY_SERVER_URL:http://localhost:8000}/api/v1/hubs/v3/api-docs
+      - name: Company API
+        url: ${GATEWAY_SERVER_URL:http://localhost:8000}/api/v1/companies/v3/api-docs
+      - name: Product API
+        url: ${GATEWAY_SERVER_URL:http://localhost:8000}/api/v1/products/v3/api-docs
+      - name: Order API
+        url: ${GATEWAY_SERVER_URL:http://localhost:8000}/api/v1/orders/v3/api-docs
+      - name: Delivery API
+        url: ${GATEWAY_SERVER_URL:http://localhost:8000}/api/v1/deliveries/v3/api-docs
+      - name: Notification API
+        url: ${GATEWAY_SERVER_URL:http://localhost:8000}/api/v1/notifications/v3/api-docs
+    use-root-path: true
+    config-url: /v3/api-docs/swagger-config
+
 logging:
   level:
-    org.springframework.cloud.gateway: INFO
-    org.springframework.web: INFO
-
-server:
-  port: 8000
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.web: DEBUG
 
 jwt:
   secret:

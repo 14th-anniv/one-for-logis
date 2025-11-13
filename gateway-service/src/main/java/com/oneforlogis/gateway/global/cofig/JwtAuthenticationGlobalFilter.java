@@ -11,13 +11,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 import com.oneforlogis.common.exception.CustomException;
 import com.oneforlogis.common.exception.ErrorCode;
 import com.oneforlogis.gateway.global.util.JwtUtil;
-import com.oneforlogis.gateway.infrastructure.config.RedisService;
 
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -30,17 +30,23 @@ import reactor.core.publisher.Mono;
 public class JwtAuthenticationGlobalFilter implements GlobalFilter, Ordered {
 
 	private final JwtUtil jwtUtil;
-	private final RedisService redisService;
+    private static final AntPathMatcher pathMatcher = new AntPathMatcher();
 
 
 	//화이트리스트(인증 건너뛰는 경로) 목록
 	private static final List<String> WHITELIST = List.of(
-		"/api/v1/users/login",
-		"/api/v1/users/signup",
-		"/swagger-ui/**",
-		"/v3/api-docs/**",
-		"/actuator/**",
-		"/health/**"
+            "/api/v1/internal/**",
+            "/api/v1/users/login",
+            "/api/v1/users/signup",
+            "/swagger-ui.html",
+            "/swagger-ui/**",
+            "/v3/api-docs/**",
+            "/api/v1/*/swagger-ui/**",
+            "/api/v1/*/v3/api-docs/**",
+            "/webjars/**",
+            "/swagger-resources/**",
+            "/actuator/**",
+            "/health/**"
 	);
 
 	// 요청별 로깅 상태 저장 (비동기 안전)
@@ -125,9 +131,9 @@ public class JwtAuthenticationGlobalFilter implements GlobalFilter, Ordered {
 	}
 
 	// 화이트리스트 경로 검사(List에 들어있는 경로인지 확인)
-	private boolean isWhitelisted(String path) {
-		return WHITELIST.stream().anyMatch(path::startsWith);
-	}
+    private boolean isWhitelisted(String path) {
+        return WHITELIST.stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
+    }
 
 	// 가장 먼저 실행
 	@Override

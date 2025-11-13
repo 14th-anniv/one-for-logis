@@ -2,6 +2,8 @@ server:
   port: 8400
 
 spring:
+  application:
+    name: order-service
   config:
     import: optional:file:.env[.properties]
   profiles:
@@ -23,7 +25,6 @@ spring:
 
 eureka:
   client:
-    enabled: false
     register-with-eureka: true
     fetch-registry: true
     service-url:
@@ -38,3 +39,9 @@ management:
 logging:
   level:
     org.springframework: INFO
+
+springdoc:
+  swagger-ui:
+    path: /api/v1/orders/
+  api-docs:
+    path: /api/v1/orders/v3/api-docs

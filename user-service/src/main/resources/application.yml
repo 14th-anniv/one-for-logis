@@ -9,9 +9,9 @@ spring:
 
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/oneforlogis_user
-    username: postgres
-    password:
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${USER_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -24,8 +24,8 @@ spring:
 
   data:
     redis:
-      host: localhost # 또는 컨테이너 이름
-      port: 6379
+      host: ${REDIS_HOST:localhost} # 또는 컨테이너 이름
+      port: ${REDIS_PORT:6379}
       password:
       lettuce:
         pool:
@@ -50,7 +50,7 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
 
 management:
   endpoints:
@@ -70,3 +70,9 @@ jwt:
 
   admin:
     token: ${JWT_ADMIN_TOKEN}
+
+springdoc:
+  swagger-ui:
+    path: /api/v1/users/
+  api-docs:
+    path: /api/v1/users/v3/api-docs

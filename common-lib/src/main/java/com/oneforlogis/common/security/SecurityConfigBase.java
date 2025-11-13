@@ -40,8 +40,11 @@ public abstract class SecurityConfigBase {
                     auth.requestMatchers(
                             "/swagger-ui/**",
                             "/v3/api-docs/**",
+                            "/api/v1/*/swagger-ui/**",
+                            "/api/v1/*/v3/api-docs/**",
                             "/actuator/**",
-                            "/health/**"
+                            "/health/**",
+                            "/api/v1/internal/**" // 내부 호출용
                     ).permitAll();
 
                     configureAuthorization(auth);
