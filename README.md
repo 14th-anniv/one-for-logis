@@ -1,6 +1,6 @@
 # MSA 기반 B2B 대상 물류 관리 및 배송 플랫폼 - One For logis 🚚
 <a href="https://club-project-one.vercel.app/" target="_blank">
-<img src="" alt="이미지가 있을 시 작성" width="100%"/>
+<img src="https://github.com/user-attachments/assets/5c963d36-6a47-4710-b7f5-927e0ad553fa" width="900" height="480" alt="one-for-logis" />
 </a>
 
 <br>
@@ -39,23 +39,67 @@
 <br>
 
 # ⭐ Team Members (팀원)
-| name | role | 담당 파트 |                                                                       Github                                                                        |
-|:----:|:----:|:-----:|:---------------------------------------------------------------------------------------------------------------------------------------------------:|
+| name | role |  담당 파트   |                                                                       Github                                                                        |
+|:----:|:----:|:--------:|:---------------------------------------------------------------------------------------------------------------------------------------------------:|
 | 김다윤  |  팀장  | 허브, 공통모듈 | <a href="https://github.com/dyun23"><img src="https://img.shields.io/badge/Github-181717?style=for-the-badge&logo=Github&logoColor=white"></a> |
 | 박근용  |  멤버  | Slack 알림 | <a href="https://github.com/GoodNyong"><img src="https://img.shields.io/badge/Github-181717?style=for-the-badge&logo=Github&logoColor=white"></a>    |
-| 박진성  |  멤버  | 회원 |  <a href="https://github.com/Sp-PJS"><img src="https://img.shields.io/badge/Github-181717?style=for-the-badge&logo=Github&logoColor=white"></a>  |
-| 설정아  |  멤버  | 주문 |  <a href="https://github.com/AlkongDalkonge"><img src="https://img.shields.io/badge/Github-181717?style=for-the-badge&logo=Github&logoColor=white"></a>  |
-| 안소나  |  멤버  | 업체, 상품 |  <a href="https://github.com/sonaanweb"><img src="https://img.shields.io/badge/Github-181717?style=for-the-badge&logo=Github&logoColor=white"></a>   |
-| 이다인  |  멤버  | 배송 |  <a href="https://github.com/dain391"><img src="https://img.shields.io/badge/Github-181717?style=for-the-badge&logo=Github&logoColor=white"></a>    |
+| 박진성  |  멤버  |    회원    |  <a href="https://github.com/Sp-PJS"><img src="https://img.shields.io/badge/Github-181717?style=for-the-badge&logo=Github&logoColor=white"></a>  |
+| 설정아  |  멤버  |    주문    |  <a href="https://github.com/AlkongDalkonge"><img src="https://img.shields.io/badge/Github-181717?style=for-the-badge&logo=Github&logoColor=white"></a>  |
+| 안소나  |  멤버  |  업체, 상품  |  <a href="https://github.com/sonaanweb"><img src="https://img.shields.io/badge/Github-181717?style=for-the-badge&logo=Github&logoColor=white"></a>   |
+| 이다인  |  멤버  |    배송    |  <a href="https://github.com/dain391"><img src="https://img.shields.io/badge/Github-181717?style=for-the-badge&logo=Github&logoColor=white"></a>    |
 
 <br>
 <br>
 
 # 🗝️ Key Features (주요 기능)
-- **기능**
+
+- **회원**
+    - 사용자는 회원 가입 및 로그인을 진행할 수 있습니다.
+    - 회원가입이 성공하고 로그인 요청이 성공하면 서버에서 Access Token, Refresh Token을 발급하여 반환합니다.
+    - 인증, 인가
+      - AccessToken은 클라이언트 Header에 저장되고, Refresh Token은 Redis 및 HttpOnly 쿠키에 저장되어 관리되며, `게이트웨이의 GlobalFilter`를 통한 인증, 검증을 통해 통합 인증 절차를 수행합니다.
+    - 관리자 전용 조회 기능은 Redis 캐싱을 활용해 성능을 최적화하였습니다.
+
+- **허브**
     - 기능 설명 작성
-- **기능**
-    - 기능 설명 작성
+
+- **업체**
+    - MASTER, HUB_MANAGER 권한을 가진 사용자는 업체 등록, 수정, 삭제, 조회 기능을 수행할 수 있습니다.
+    - 업체 타입은 생산/공급 업체로 분리됩니다.
+    - 사용자는 업체 조회 시 업체 이름을 기준으로 검색할 수 있습니다.
+
+- **상품**
+    - MASTER, HUB_MANAGER, COMPANY_MANAGER 권한 사용자는 상품 등록, 수정, 조회 기능을 사용할 수 있으며, 삭제는 COMPANY_MANAGER를 제외한 권한에서만 가능합니다.
+      - 상품 조회 시 상품명을 기준으로 검색을 지원합니다.
+      - 필수 속성 검증을 통해 상품 등록 시 데이터 정합성을 보장합니다.
+    - 재고 연동
+      - 주문 서비스와의 연동을 위해 재고 차감 및 증가 기능을 제공하는 internal API를 구성하여 안정적이고 일관성 있는 재고 관리를 지원하도록 구현하였습니다.
+
+- **주문**
+    - 주문 생성: 업체, 상품 정보로 주문을 생성하며 초기 상태는 요청(REQUESTED) 상태로 설정되며, 상태 이력(History)을 자동으로 기록합니다.
+      - (REQUESTED → CONFIRMED → IN_PROGRESS → COMPLETED → CANCELED)
+    - 주문 단건 조회 및 목록 조회로 주문 기본 정보를 확인할 수 있으며, 주문 수정은 변경 가능한 기본 정보, 주문 상태 변경을 분리해 관리하였습니다.
+    - 주문 상태 이력 조회
+      - 해당 주문의 모든 상태 변경 내역을 전체 조회할 수 있습니다.
+    - 주문 취소 시에는 취소 사유와 함께, 상태 이력을 저장합니다.
+
+- **배송**
+    - 배송 생성: 주문 생성 `Kafka 이벤트`를 구독하여 배송 정보를 자동으로 생성합니다.
+      - (출발/도착 허브 정보, 수령자 정보를 함께 저장하며 기본 상태는 허브 대기(WAITING_AT_HUB)로 설정됩니다.)
+    - 배송 담당자 관리
+      - 허브 별 배송 담당자 등록 및 조회 기능을 제공합니다. 배송 상태가 허브 대기일 때만 담당자 배정이 가능합니다.
+    - 배송 상태 흐름은 허브 대기 -> 허브 이동 -> 목적지 도착 -> 배송 중 -> 완료로 이루어지며, 잘못된 상태 변경, 또는 비정상 요청 시 표준화된 예외를 반환합니다.
+
+- **알림 서비스**
+    - AI 자연어 분석을 통해 출발 시간을 계산하고, Gemini API를 이용해 사용자에게 도착 기한, 출발/목적지 허브 정보 기반으로 최적의 출발 시간을 산출하여 제공합니다.
+    - 알림 발송
+      - 자동 및 수동 알림 발송 지원, REST API, Kafka 이벤트를 통한 발송 처리
+      - `Kafka`: 주문 생성 및 배송 상태 변경 이벤트를 구독하며 멱등성 보장 구현
+    - 안정성 보장
+      - FeignClient Fallback을 적용해 user-service 연동 시 발생 가능한 NPE 위험 제거
+      - Circuit Breaker와 Fallback 패턴을 적용해 외부 API 장애 시 서비스 안정성을 확보하고, 스냅샷 패턴으로 발송 시점의 발신자 정보를 저장해 데이터 정합성 보장
+    - 조회: 발송된 알림(Slack/Gemini API)의 상세 조회를 포함해 페이징, 필터링하여 조회할 수 있습니다.
+    - 통계 및 모니터링: 알림 통계(일 별/기간 별 발송 성공, 실패율), API 통계(성공률, 평균 응답시간, 총 비용)
 
 <br>
 <br>
