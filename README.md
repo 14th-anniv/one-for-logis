@@ -22,6 +22,7 @@
 [![Spring Data JPA](https://img.shields.io/badge/Spring%20Data%20JPA-228B22?style=for-the-badge&logo=java&logoColor=white)](https://spring.io/projects/spring-data-jpa)
 [![Spring Security](https://img.shields.io/badge/Spring%20Security-6DB33F?style=for-the-badge&logo=spring&logoColor=white)](https://spring.io/projects/spring-security)
 [![Kafka](https://img.shields.io/badge/Kafka-231F20?style=for-the-badge&logo=apachekafka&logoColor=white)](https://kafka.apache.org/)
+[![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
 
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL%2017-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
@@ -31,8 +32,6 @@
 [![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)](https://swagger.io/)
 [![Slack](https://img.shields.io/badge/Slack-4A154B?style=for-the-badge&logo=slack&logoColor=white)](https://slack.com/)
 [![Notion](https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=notion&logoColor=white)](https://www.notion.so/)
-
-[![Gemini](https://img.shields.io/badge/Gemini-8A2BE2?style=for-the-badge)](https://gemini.com/)
 
 
 <br>
@@ -61,7 +60,12 @@
     - 관리자 전용 조회 기능은 Redis 캐싱을 활용해 성능을 최적화하였습니다.
 
 - **허브**
-    - 기능 설명 작성
+    - 전국 물류망을 구성하는 핵심 거점 정보를 관리합니다. (허브의 이름, 주소, 위도/경도 등 기본 정보 등록·수정·삭제)
+    - 허브 간 이동 경로 관리
+      - Hub to Hub Relay 구조로 이루어지기 때문에, 허브와 함께 허브 간 경로(Route) 도 통합 관리합니다.
+      - 허브 경로에는 거리, 평균 소요 시간, 연결된 허브 ID 등이 포함되며 이 정보로 전체 허브 네트워크를 그래프 구조로 구성합니다.
+      - 구성된 그래프는 Redis에 캐싱되어 `Dijkstra 알고리즘`을 통한 최단 거리·최소 시간 경로 탐색에 활용됩니다.
+      - 허브 또는 경로 데이터가 변경되면 네트워크 그래프도 자동 반영되어, 이후 배송 경로 계산 시 항상 최신 상태를 기반으로 처리됩니다.
 
 - **업체**
     - MASTER, HUB_MANAGER 권한을 가진 사용자는 업체 등록, 수정, 삭제, 조회 기능을 수행할 수 있습니다.
