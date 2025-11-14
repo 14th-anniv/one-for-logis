@@ -181,4 +181,5 @@ Git Flow를 기반으로 하며, 다음과 같은 브랜치를 사용합니다.
 <br>
 
 # 📄 기술 문서
-[API 명세서 자세히 보기](https://teamsparta.notion.site/29d2dc3ef5148147b0b4ddc502359f62?v=2a02dc3ef51480b183d6000c635a5567)
+[API 명세서 보기](https://teamsparta.notion.site/29d2dc3ef5148147b0b4ddc502359f62?v=2a02dc3ef51480b183d6000c635a5567)
+[테이블 명세서 보기](https://teamsparta.notion.site/2a12dc3ef51480609d8be79e3a0c82ad)
