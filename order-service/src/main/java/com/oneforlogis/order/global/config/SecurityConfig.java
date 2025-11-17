@@ -17,4 +17,3 @@ public class SecurityConfig extends SecurityConfigBase {
         auth.requestMatchers("/api/v1/orders/**").permitAll();
     }
 }
-
