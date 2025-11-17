@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash notification-service/scripts/test-notification-api.sh:*)",
+      "Bash(curl:*)",
+      "Bash(bash:*)",
+      "Bash(docker logs:*)",
+      "Bash(python -m json.tool:*)",
+      "Bash(./gradlew build:*)",
+      "Bash(./gradlew:*)",
+      "Bash(docker exec:*)",
+      "Bash(cat:*)",
+      "Bash('http://localhost:8000/api/v1/notifications/manual' )",
+      "Bash(docker-compose:*)",
+      "Bash(tree:*)",
+      "Bash(xargs:*)",
+      "Bash(done)",
+      "Bash(powershell -Command \"Get-ChildItem docs/07-issues/*.md | ForEach-Object { Write-Host (''''File: '''' + $_ame); Get-Content $_ullName -TotalCount 1; Write-Host '''''''' }\")",
+      "Bash(powershell -Command:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

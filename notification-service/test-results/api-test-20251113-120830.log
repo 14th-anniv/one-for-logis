@@ -1,11 +1,11 @@
 ========================================
 Notification Service API Test
-Start Time: Mon Nov 10 18:17:45     2025
+Start Time: 2025년 11월 13일 목 오후 12:08:30
 ========================================
 
 [0;34m[TEST 1] 주문 알림 발송 (POST /order)[0m
 Request: POST http://localhost:8700/api/v1/notifications/order
-Response Status: 200
+Response Status: 201
 Response Body:
 [0;32m✅ PASS[0m
 
@@ -15,49 +15,55 @@ Response Status: 201
 Response Body:
 [0;32m✅ PASS[0m
 
-[0;34m[TEST 3] 수동 메시지 발송 - 권한 없음 (POST /manual)[0m
+[0;34m[TEST 3] 배송 상태 변경 알림 발송 - 권한 없음 (POST /delivery-status)[0m
+Request: POST http://localhost:8700/api/v1/notifications/delivery-status
+Response Status: 403
+Response Body:
+[0;32m✅ PASS[0m
+
+[0;34m[TEST 4] 수동 메시지 발송 - 권한 없음 (POST /manual)[0m
 Request: POST http://localhost:8700/api/v1/notifications/manual
 Response Status: 403
 Response Body:
 [0;32m✅ PASS[0m
 
-[0;34m[TEST 4] 알림 단일 조회 - 권한 없음 (GET /{id})[0m
-Request: GET http://localhost:8700/api/v1/notifications/bb8f318e-4a2b-4c82-ae01-ef9795a277c5
+[0;34m[TEST 5] 알림 단일 조회 - 권한 없음 (GET /{id})[0m
+Request: GET http://localhost:8700/api/v1/notifications/062bcbfe-327e-4d8b-a876-c564a7c2929e
 Response Status: 403
 Response Body:
 [0;32m✅ PASS[0m
 
-[0;34m[TEST 5] 알림 목록 조회 - 권한 없음 (GET /?page=0&size=10)[0m
+[0;34m[TEST 6] 알림 목록 조회 - 권한 없음 (GET /?page=0&size=10)[0m
 Request: GET http://localhost:8700/api/v1/notifications?page=0&size=10&sortBy=createdAt&isAsc=false
 Response Status: 403
 Response Body:
 [0;32m✅ PASS[0m
 
-[0;34m[TEST 6] 외부 API 로그 전체 조회 - 권한 없음 (GET /api-logs)[0m
+[0;34m[TEST 7] 외부 API 로그 전체 조회 - 권한 없음 (GET /api-logs)[0m
 Request: GET http://localhost:8700/api/v1/notifications/api-logs
 Response Status: 403
 Response Body:
 [0;32m✅ PASS[0m
 
-[0;34m[TEST 7] 외부 API 로그 Provider별 조회 - 권한 없음 (GET /api-logs/provider/SLACK)[0m
+[0;34m[TEST 8] 외부 API 로그 Provider별 조회 - 권한 없음 (GET /api-logs/provider/SLACK)[0m
 Request: GET http://localhost:8700/api/v1/notifications/api-logs/provider/SLACK
 Response Status: 403
 Response Body:
 [0;32m✅ PASS[0m
 
-[0;34m[TEST 8] 외부 API 로그 메시지별 조회 - 권한 없음 (GET /api-logs/message/{id})[0m
-Request: GET http://localhost:8700/api/v1/notifications/api-logs/message/09c789b8-f977-4920-9945-270e3b64264b
+[0;34m[TEST 9] 외부 API 로그 메시지별 조회 - 권한 없음 (GET /api-logs/message/{id})[0m
+Request: GET http://localhost:8700/api/v1/notifications/api-logs/message/adea2cce-29c4-4745-b3d0-bf1154d3a9e8
 Response Status: 403
 Response Body:
 [0;32m✅ PASS[0m
 
-[0;34m[TEST 9] 알림 필터링 조회 - 권한 없음 (GET /search)[0m
+[0;34m[TEST 10] 알림 필터링 조회 - 권한 없음 (GET /search)[0m
 Request: GET http://localhost:8700/api/v1/notifications/search?messageType=ORDER_NOTIFICATION&status=SENT&page=0&size=10&sortBy=createdAt&isAsc=false
 Response Status: 403
 Response Body:
 [0;32m✅ PASS[0m
 
-[0;34m[TEST 10] API 통계 조회 - 권한 없음 (GET /api-logs/stats)[0m
+[0;34m[TEST 11] API 통계 조회 - 권한 없음 (GET /api-logs/stats)[0m
 Request: GET http://localhost:8700/api/v1/notifications/api-logs/stats
 Response Status: 403
 Response Body:
@@ -66,11 +72,11 @@ Response Body:
 ========================================
 Test Summary
 ========================================
-Total Tests: 10
-[0;32mPassed: 10[0m
+Total Tests: 11
+[0;32mPassed: 11[0m
 [0;31mFailed: 0[0m
-End Time: Mon Nov 10 18:18:10     2025
+End Time: 2025년 11월 13일 목 오후 12:09:06
 
-[0;32m✅ All tests passed/c/Users/gy990/OneDrive/GYP/14.Master_Java/02.workspace/one-for-logis/notification-service/test-results/api-test-20251110-181744.log{NC}
+[0;32m✅ All tests passed![0m
 
-Results saved to: /c/Users/gy990/OneDrive/GYP/14.Master_Java/02.workspace/one-for-logis/notification-service/test-results/api-test-20251110-181744.log
+Results saved to: /c/Users/gy990/OneDrive/GYP/14.Master_Java/02.workspace/one-for-logis/notification-service/test-results/api-test-20251113-120830.log

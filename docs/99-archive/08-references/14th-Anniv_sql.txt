@@ -1,0 +1,214 @@
+﻿CREATE TABLE "p_delivery_route_log" (
+	"route_id"	UUID	DEFAULT PK	NOT NULL,
+	"step_order"	INT	DEFAULT 0부터 증가/시간순	NOT NULL,
+	"route_status"	ENUM	DEFAULT Delivery.delivery_status 히스토리로도 사용 가능	NOT NULL,
+	"hub_id"	UUID	DEFAULT 라스트마일 등은 NULL 허용	NULL,
+	"delivery_staff_id"	BIGINT	DEFAULT 허브 간/라스트마일 누가 들고 이동했는지 기록	NULL,
+	"occurred_at"	TIMESTAMP	DEFAULT 이 이벤트가 실제로 발생한 시간	NOT NULL,
+	"note"	VARCHAR(255)	DEFAULT 예: “파손 없음 확인”	NULL,
+	"created_at"	TIMESTAMP	DEFAULT 로그 생성 시간	NOT NULL,
+	"deleted_at"	TIMESTAMP	DEFAULT soft delete	NULL,
+	"id2"	UUID	DEFAULT PK	NOT NULL
+);
+
+CREATE TABLE "p_order" (
+	"id"	VARCHAR(255)		NOT NULL,
+	"order_no"	VARCHAR(30)		NOT NULL,
+	"user_id"	BIGINT		NOT NULL,
+	"supplier_company_id"	VARCHAR(36)		NOT NULL,
+	"receiver_company_id"	VARCHAR(36)		NOT NULL,
+	"status"	VARCHAR(20)		NOT NULL,
+	"delivery_id"	VARCHAR(36)		NULL,
+	"items_count"	INT		NULL,
+	"total_amount"	INT		NULL,
+	"request_note"	TEXT		NULL
+);
+
+CREATE TABLE "p_external_api_logs" (
+	"log_id"	UUID		NOT NULL,
+	"api_provider"	VARCHAR(50)	DEFAULT enum: SLACK, GEMINI	NOT NULL,
+	"api_method"	VARCHAR(100)		NOT NULL,
+	"request_data"	JSONB		NULL,
+	"response_data"	JSONB		NULL,
+	"http_status"	INTEGER		NULL,
+	"is_success"	BOOLEAN		NOT NULL,
+	"error_code"	VARCHAR(50)		NULL,
+	"error_message"	TEXT		NULL,
+	"duration_ms"	INTEGER		NOT NULL,
+	"cost"	DECIMAL(10,4)		NULL,
+	"called_at"	TIMESTAMP		NOT NULL,
+	"message_id"	UUID		NULL
+);
+
+CREATE TABLE "Untitled" (
+	"created_at"	DATE		NOT NULL,
+	"created_by"	id		NOT NULL,
+	"updated_at"	DATE		NULL,
+	"updated_by"	id		NULL,
+	"deleted_at"	DATE		NULL,
+	"deleted_by"	id		NULL
+);
+
+CREATE TABLE "p_company" (
+	"id"	UUID		NOT NULL,
+	"name"	VARCHAR(255)		NOT NULL,
+	"type"	ENUM	DEFAULT 생산, 수령업체	NOT NULL,
+	"hub_id"	UUID		NOT NULL,
+	"address"	VARCHAR(255)		NOT NULL
+);
+
+CREATE TABLE "p_product" (
+	"id"	UUID		NOT NULL,
+	"name"	VARCHAR(255)		NOT NULL,
+	"company_id"	UUID		NOT NULL,
+	"hub_id"	UUID		NOT NULL,
+	"quantity"	INTEGER		NOT NULL,
+	"status"	ENUM	DEFAULT ACTIVE, INACTIVE, DELETED	NOT NULL,
+	"price"	Integer		NOT NULL
+);
+
+CREATE TABLE "p_order_status_history" (
+	"id"	VARCHAR(255)		NOT NULL,
+	"from_status"	VARCHAR(20)		NOT NULL,
+	"to_status"	VARCHAR(20)		NOT NULL,
+	"reason"	TEXT		NULL,
+	"order_id"	VARCHAR(36)		NOT NULL
+);
+
+CREATE TABLE "p_order_item" (
+	"id"	UUID		NOT NULL,
+	"product_id"	UUID		NOT NULL,
+	"product_name"	VARCHAR(255)		NOT NULL,
+	"unit_price"	NUMERIC(18,2)		NOT NULL,
+	"quantity"	INTEGER		NOT NULL,
+	"line_total"	NUMERIC(18,2)		NOT NULL,
+	"order_id"	UUID		NOT NULL
+);
+
+CREATE TABLE "p_hub" (
+	"id"	UUID		NOT NULL,
+	"name"	VARCAHR(255)		NOT NULL,
+	"address"	VARCHAR(255)		NOT NULL,
+	"lat"	DECIMAL		NOT NULL,
+	"lon"	DECIMAL		NOT NULL
+);
+
+CREATE TABLE "p_delivery" (
+	"id"	UUID	DEFAULT PK	NOT NULL,
+	"order_id"	UUID		NOT NULL,
+	"status"	ENUM		NOT NULL,
+	"from_hub_id"	UUID	DEFAULT FK	NOT NULL,
+	"to_hun_id"	UUID	DEFAULT FK	NOT NULL,
+	"estimated_distance_km"	DECIMAL(10, 2)	DEFAULT 출발~도착 전체 루트 사전 계산 거리	NULL,
+	"estimated_duration_min"	INT	DEFAULT SLA 추적/ETA 표시용	NULL,
+	"arrived_destination_hub"	BOOLEAN	DEFAULT 기본 false → 목적지 허브 인입 시 true	NULL,
+	"destinaion_hub_arrived_at"	TIMESTAMP	DEFAULT arrived_destination_hub=true	NULL,
+	"delivery_staff_id"	BIGINT	DEFAULT FK	NULL,
+	"receiver_name"	VARCHAR(100)	DEFAULT 납품자 명	NOT NULL,
+	"receiver_address"	VARCHAR(255)	DEFAULT 납품지 실제 주소	NOT NULL,
+	"receiver_slack_id"	VARCHAR(100)	DEFAULT 배송 담당자 연락용(전화번호대체)	NULL
+);
+
+CREATE TABLE "p_slack" (
+	"message_id"	UUID		NOT NULL,
+	"sender_slack_id"	VARCHAR(100)		NOT NULL,
+	"sender_username"	VARCHAR(100)	DEFAULT 시스템 발송 시 null	NULL,
+	"sender_name"	VARCHAR(100)	DEFAULT 시스템 발송 시 "시스템"	NULL,
+	"sender_type"	VARCHAR(100)	DEFAULT enum: USER, SYSTEM	NULL,
+	"recipient_slack_id"	VARCHAR(100)		NULL,
+	"recipient_name"	VARCHAR(100)		NULL,
+	"meesage_content"	TEXT		NOT NULL,
+	"message_type"	VARCHAR(50)	DEFAULT enum	NOT NULL,
+	"reference_id"	UUID		NULL,
+	"sent_at"	TIMESTAMP		NOT NULL,
+	"status"	VARCHAR(50)	DEFAULT enum: default=PENDING	NOT NULL,
+	"error_message"	TEXT		NULL
+);
+
+CREATE TABLE "p_hub_route" (
+	"id"	LONG		NOT NULL,
+	"from_hub_id"	UUID		NOT NULL,
+	"to_hub_id"	UUID		NOT NULL,
+	"route_time"	INTEGER		NOT NULL,
+	"route_distance"	DECIMAL		NOT NULL,
+	"route_type"	ENUM	DEFAULT DIRECT, RELAY	NOT NULL
+);
+
+CREATE TABLE "p_user" (
+	"user_id"	LONG		NOT NULL,
+	"username"	VARCHAR(100)		NOT NULL,
+	"slack_username"	VARCHAR(255)		NOT NULL,
+	"password"	VARCHAR(255)		NOT NULL,
+	"role"	ENUM		NOT NULL,
+	"nickname"	VARCHAR(100)		NOT NULL,
+	"company_name"	VARCHAR(255)		NOT NULL,
+	"user_status"	ENUM		NOT NULL,
+	"email"	VARCHAR(255)		NOT NULL,
+	"is_public"	Boolean		NOT NULL
+);
+
+CREATE TABLE "p_delivery_staff" (
+	"staff_id"	BIGINT	DEFAULT PK	NOT NULL,
+	"hub_id"	UUID	DEFAULT FK	NULL,
+	"staff_type"	ENUM		NOT NULL,
+	"slack_id"	VARCHAR(100)	DEFAULT DM/알림용	NULL,
+	"assign_order"	INT	DEFAULT 라운드로빈	NOT NULL,
+	"is_active"	BOOLEAN	DEFAULT true=배정 대상	NOT NULL,
+	"created_at"	TIMESTAMP	DEFAULT 레코드 생성 시간	NOT NULL,
+	"updated_at"	TIMESTAMP	DEFAULT 레코드 수정 시간	NOT NULL,
+	"deleted_at"	TIMESTAMP	DEFAULT soft delete	NULL,
+	"delivery_id"	UUID		NOT NULL
+);
+
+ALTER TABLE "p_delivery_route_log" ADD CONSTRAINT "PK_P_DELIVERY_ROUTE_LOG" PRIMARY KEY (
+	"route_id"
+);
+
+ALTER TABLE "p_order" ADD CONSTRAINT "PK_P_ORDER" PRIMARY KEY (
+	"id"
+);
+
+ALTER TABLE "p_external_api_logs" ADD CONSTRAINT "PK_P_EXTERNAL_API_LOGS" PRIMARY KEY (
+	"log_id"
+);
+
+ALTER TABLE "p_company" ADD CONSTRAINT "PK_P_COMPANY" PRIMARY KEY (
+	"id"
+);
+
+ALTER TABLE "p_product" ADD CONSTRAINT "PK_P_PRODUCT" PRIMARY KEY (
+	"id"
+);
+
+ALTER TABLE "p_order_status_history" ADD CONSTRAINT "PK_P_ORDER_STATUS_HISTORY" PRIMARY KEY (
+	"id"
+);
+
+ALTER TABLE "p_order_item" ADD CONSTRAINT "PK_P_ORDER_ITEM" PRIMARY KEY (
+	"id"
+);
+
+ALTER TABLE "p_hub" ADD CONSTRAINT "PK_P_HUB" PRIMARY KEY (
+	"id"
+);
+
+ALTER TABLE "p_delivery" ADD CONSTRAINT "PK_P_DELIVERY" PRIMARY KEY (
+	"id"
+);
+
+ALTER TABLE "p_slack" ADD CONSTRAINT "PK_P_SLACK" PRIMARY KEY (
+	"message_id"
+);
+
+ALTER TABLE "p_hub_route" ADD CONSTRAINT "PK_P_HUB_ROUTE" PRIMARY KEY (
+	"id"
+);
+
+ALTER TABLE "p_user" ADD CONSTRAINT "PK_P_USER" PRIMARY KEY (
+	"user_id"
+);
+
+ALTER TABLE "p_delivery_staff" ADD CONSTRAINT "PK_P_DELIVERY_STAFF" PRIMARY KEY (
+	"staff_id"
+);
+

@@ -1,0 +1,153 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:17
+    container_name: postgres-ofl
+    env_file:
+      - .env.docker
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - ofl-net
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: redis-ofl
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - ofl-net
+
+  # Eureka Server
+  eureka-server:
+    image: openjdk:17.0.1
+    container_name: eureka-server
+    working_dir: /app
+    volumes:
+      - ./eureka-server/build/libs:/app
+    command: ["java", "-jar", "/app/eureka-server-0.0.1-SNAPSHOT.jar"]
+    ports:
+      - "8761:8761"
+    env_file:
+      - .env.docker
+    networks:
+      - ofl-net
+
+  # API Gateway
+  gateway-service:
+    image: openjdk:17.0.1
+    container_name: gateway-service
+    working_dir: /app
+    volumes:
+      - ./gateway-service/build/libs:/app
+    command: ["java", "-jar", "/app/gateway-service-0.0.1-SNAPSHOT.jar"]
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.docker
+    depends_on:
+      - eureka-server
+    networks:
+      - ofl-net
+
+  # User Service
+  user-service:
+    image: openjdk:17.0.1
+    container_name: user-service
+    working_dir: /app
+    volumes:
+      - ./user-service/build/libs:/app
+    command: ["java", "-jar", "/app/user-service-0.0.1-SNAPSHOT.jar"]
+    ports:
+      - "8100:8100"
+    env_file:
+      - .env.docker
+    depends_on:
+      - postgres
+      - eureka-server
+    networks:
+      - ofl-net
+
+  # Hub Service
+  hub-service:
+    image: openjdk:17.0.1
+    container_name: hub-service
+    working_dir: /app
+    volumes:
+      - ./hub-service/build/libs:/app
+    command: ["java", "-jar", "/app/hub-service-0.0.1-SNAPSHOT.jar"]
+    ports:
+      - "8200:8200"
+    env_file:
+      - .env.docker
+    depends_on:
+      - postgres
+      - redis
+      - eureka-server
+    networks:
+      - ofl-net
+
+  # Order Service
+  order-service:
+    image: openjdk:17.0.1
+    container_name: order-service
+    working_dir: /app
+    volumes:
+      - ./order-service/build/libs:/app
+    command: ["java", "-jar", "/app/order-service-0.0.1-SNAPSHOT.jar"]
+    ports:
+      - "8400:8400"
+    env_file:
+      - .env.docker
+    depends_on:
+      - postgres
+      - eureka-server
+    networks:
+      - ofl-net
+
+  # Notification Service
+  notification-service:
+    image: openjdk:17.0.1
+    container_name: notification-service
+    working_dir: /app
+    volumes:
+      - ./notification-service/build/libs:/app
+    command: ["java", "-jar", "/app/notification-service-0.0.1-SNAPSHOT.jar"]
+    ports:
+      - "8700:8700"
+    env_file:
+      - .env.docker
+    depends_on:
+      - postgres
+      - eureka-server
+    networks:
+      - ofl-net
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  ofl-net:
+    driver: bridge

@@ -1,0 +1,399 @@
+# ============================================
+# Docker Compose for Local Development
+# ============================================
+# one-for-logis MSA Project
+# - 전체 9개 서비스 (Eureka, Gateway, User, Hub, Company, Product, Order, Delivery, Notification)
+# - Infrastructure: PostgreSQL, Redis, Kafka, Zookeeper
+# - Volume Mount 방식 (빠른 개발 사이클)
+#
+# 사용법:
+#   1. 전체 빌드: ./gradlew build
+#   2. 서비스 시작: docker-compose -f docker-compose-local.yml up -d
+#   3. 로그 확인: docker-compose -f docker-compose-local.yml logs -f [service]
+#   4. 서비스 중지: docker-compose -f docker-compose-local.yml down
+#
+# 환경 변수: .env.docker 파일 필수
+
+services:
+  # ============================================
+  # Infrastructure: PostgreSQL
+  # ============================================
+  postgres:
+    image: postgres:17
+    container_name: postgres-ofl
+    env_file:
+      - .env.docker
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - ofl-net
+
+  # ============================================
+  # Infrastructure: Redis
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: redis-ofl
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - ofl-net
+
+  # ============================================
+  # Infrastructure: Zookeeper (Kafka Dependency)
+  # ============================================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper-ofl
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2380
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2380:2380"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_logs:/var/lib/zookeeper/log
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2380"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - ofl-net
+
+  # ============================================
+  # Infrastructure: Kafka
+  # ============================================
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka-ofl
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2380
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - ofl-net
+
+  # ============================================
+  # Eureka Server
+  # ============================================
+  eureka-server:
+    image: openjdk:17.0.1
+    container_name: eureka-server
+    working_dir: /app
+    volumes:
+      - ./eureka-server/build/libs:/app
+    command: ["java", "-jar", "/app/eureka-server-0.0.1-SNAPSHOT.jar"]
+    ports:
+      - "8761:8761"
+    env_file:
+      - .env.docker
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8761/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - ofl-net
+
+  # ============================================
+  # API Gateway
+  # ============================================
+  gateway-service:
+    image: openjdk:17.0.1
+    container_name: gateway-service
+    working_dir: /app
+    volumes:
+      - ./gateway-service/build/libs:/app
+    command: ["java", "-jar", "/app/gateway-service-0.0.1-SNAPSHOT.jar"]
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.docker
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - ofl-net
+
+  # ============================================
+  # User Service
+  # ============================================
+  user-service:
+    image: openjdk:17.0.1
+    container_name: user-service
+    working_dir: /app
+    volumes:
+      - ./user-service/build/libs:/app
+    command: ["java", "-jar", "/app/user-service-0.0.1-SNAPSHOT.jar"]
+    ports:
+      - "8100:8100"
+    env_file:
+      - .env.docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8100/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - ofl-net
+
+  # ============================================
+  # Hub Service
+  # ============================================
+  hub-service:
+    image: openjdk:17.0.1
+    container_name: hub-service
+    working_dir: /app
+    volumes:
+      - ./hub-service/build/libs:/app
+    command: ["java", "-jar", "/app/hub-service-0.0.1-SNAPSHOT.jar"]
+    ports:
+      - "8200:8200"
+    env_file:
+      - .env.docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8200/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - ofl-net
+
+  # ============================================
+  # Company Service
+  # ============================================
+  company-service:
+    image: openjdk:17.0.1
+    container_name: company-service
+    working_dir: /app
+    volumes:
+      - ./company-service/build/libs:/app
+    command: ["java", "-jar", "/app/company-service-0.0.1-SNAPSHOT.jar"]
+    ports:
+      - "8300:8300"
+    env_file:
+      - .env.docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8300/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - ofl-net
+
+  # ============================================
+  # Product Service
+  # ============================================
+  product-service:
+    image: openjdk:17.0.1
+    container_name: product-service
+    working_dir: /app
+    volumes:
+      - ./product-service/build/libs:/app
+    command: ["java", "-jar", "/app/product-service-0.0.1-SNAPSHOT.jar"]
+    ports:
+      - "8500:8500"
+    env_file:
+      - .env.docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8500/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - ofl-net
+
+  # ============================================
+  # Order Service (Kafka Producer)
+  # ============================================
+  order-service:
+    image: openjdk:17.0.1
+    container_name: order-service
+    working_dir: /app
+    volumes:
+      - ./order-service/build/libs:/app
+    command: ["java", "-jar", "/app/order-service-0.0.1-SNAPSHOT.jar"]
+    ports:
+      - "8400:8400"
+    env_file:
+      - .env.docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8400/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - ofl-net
+
+  # ============================================
+  # Delivery Service (Kafka Consumer & Producer)
+  # ============================================
+  delivery-service:
+    image: openjdk:17.0.1
+    container_name: delivery-service
+    working_dir: /app
+    volumes:
+      - ./delivery-service/build/libs:/app
+    command: ["java", "-jar", "/app/delivery-service-0.0.1-SNAPSHOT.jar"]
+    ports:
+      - "8600:8600"
+    env_file:
+      - .env.docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8600/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - ofl-net
+
+  # ============================================
+  # Notification Service (Kafka Consumer)
+  # ============================================
+  notification-service:
+    image: openjdk:17.0.1
+    container_name: notification-service
+    working_dir: /app
+    volumes:
+      - ./notification-service/build/libs:/app
+    command: ["java", "-jar", "/app/notification-service-0.0.1-SNAPSHOT.jar"]
+    ports:
+      - "8700:8700"
+    env_file:
+      - .env.docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8700/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - ofl-net
+
+# ============================================
+# Networks
+# ============================================
+networks:
+  ofl-net:
+    driver: bridge
+
+# ============================================
+# Volumes
+# ============================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  zookeeper_data:
+    driver: local
+  zookeeper_logs:
+    driver: local
+  kafka_data:
+    driver: local
