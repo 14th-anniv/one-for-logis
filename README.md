@@ -1,7 +1,5 @@
 # MSA 기반 B2B 대상 물류 관리 및 배송 플랫폼 - One For logis 🚚
-<a href="https://club-project-one.vercel.app/" target="_blank">
-<img src="https://github.com/user-attachments/assets/5c963d36-6a47-4710-b7f5-927e0ad553fa" width="900" height="480" alt="one-for-logis" />
-</a>
+<img src="./assets/one-for-logis-banner.png" alt="one-for-logis" width="100%" />
 
 <br>
 <br>
@@ -109,8 +107,8 @@
 <br>
 
 # 🌐 ERD 및 시스템 아키텍처
-<img width="2000" height="1200" alt="Image" src="https://github.com/user-attachments/assets/8655eac9-07ce-42a3-9f91-01082bb34747" />
-<img width="900" height="700" alt="Image" src="https://github.com/user-attachments/assets/d70e94f2-dd90-490e-a9e1-f0a8f2aee5f1" />
+<img src="./assets/one-for-logis-erd.png" alt="one-for-logis" width="100%" />
+<img src="./assets/one-for-logis-archi.png" alt="one-for-logis" width="100%" />
 
 
 # 📂 Project Structure (프로젝트 구조)
